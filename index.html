@@ -1,0 +1,649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Engineering Pulse</title>
+<style>
+:root{
+  --bg:#0a0d13;--surface:#111520;--card:#161c2a;--border:#1e2840;
+  --accent:#4f8ef7;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;
+  --text:#e2e8f0;--muted:#7a8599;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
+
+/* PASSWORD */
+#pw{display:flex;align-items:center;justify-content:center;height:100vh;
+  background:radial-gradient(ellipse at 30% 25%,rgba(79,142,247,.10) 0%,transparent 55%),var(--bg);}
+.pw-box{width:360px;background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:40px 36px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.pw-brand{font-size:24px;font-weight:800;margin-bottom:4px;}
+.pw-brand b{color:var(--accent);}
+.pw-tag{font-size:11px;color:var(--muted);letter-spacing:.07em;text-transform:uppercase;margin-bottom:28px;}
+.pw-lk{font-size:32px;margin-bottom:18px;}
+.pw-inp{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:9px;
+  padding:12px 16px;color:#fff;font-size:15px;text-align:center;letter-spacing:.18em;outline:none;
+  margin-bottom:12px;transition:border-color .2s;}
+.pw-inp:focus{border-color:var(--accent);}
+.pw-btn{width:100%;background:var(--accent);color:#fff;border:none;border-radius:9px;
+  padding:12px;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .2s;}
+.pw-btn:hover{opacity:.85;}
+.pw-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;}
+
+/* LAYOUT */
+#app{display:none;height:100vh;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:50px;
+  background:#080b11;border-bottom:1px solid var(--border);flex-shrink:0;}
+.brand{font-size:17px;font-weight:800;}.brand b{color:var(--accent);}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:4px 11px;font-size:11px;color:var(--muted);}
+.chip strong{color:var(--text);font-weight:700;}
+
+/* FILTERS */
+.fbar{display:flex;align-items:center;gap:8px;padding:9px 20px;
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.flbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--muted);}
+select.fsel{background:var(--card);border:1px solid var(--border);border-radius:6px;
+  padding:5px 9px;color:var(--text);font-size:12px;outline:none;cursor:pointer;}
+select.fsel:focus{border-color:var(--accent);}
+.freset{all:unset;box-sizing:border-box;font-size:11px;color:var(--accent);cursor:pointer;
+  padding:4px 10px;border:1px solid rgba(79,142,247,.3);border-radius:5px;}
+.freset:hover{background:rgba(79,142,247,.08);}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg);border-bottom:1px solid var(--border);
+  padding:0 20px;flex-shrink:0;gap:2px;}
+.tab{all:unset;box-sizing:border-box;padding:11px 18px;font-size:12.5px;font-weight:500;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .15s,border-color .15s;}
+.tab:hover{color:var(--text);}
+.tab.on{color:#fff;border-bottom-color:var(--accent);font-weight:600;}
+
+/* PAGES */
+.wrap{flex:1;overflow-y:auto;padding:18px 20px;}
+.pg{display:none;}.pg.on{display:block;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px 18px;}
+
+/* KPI ROW */
+.krow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px 18px;
+  border-top:2px solid var(--border);}
+.kpi.k-blue{border-top-color:var(--accent);}
+.kpi.k-green{border-top-color:var(--green);}
+.kpi.k-amber{border-top-color:var(--amber);}
+.kpi.k-red{border-top-color:var(--red);}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:8px;}
+.kpi-val{font-size:32px;font-weight:800;line-height:1;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:5px;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,var(--card),#0e1422);border:1px solid var(--border);
+  border-radius:12px;padding:20px 24px;display:flex;gap:24px;align-items:center;
+  margin-bottom:14px;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;top:-60px;right:-60px;width:220px;height:220px;
+  background:radial-gradient(circle,rgba(79,142,247,.09) 0%,transparent 70%);}
+.hero-score{font-size:60px;font-weight:900;line-height:1;flex-shrink:0;}
+.hero-r{flex:1;}
+.hero-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;}
+.hero-band{font-size:14px;font-weight:700;margin-bottom:8px;}
+.prog{height:7px;background:var(--border);border-radius:4px;margin-bottom:10px;}
+.prog-fill{height:7px;border-radius:4px;}
+.hero-meta{display:flex;gap:18px;flex-wrap:wrap;}
+.hm{font-size:12px;color:var(--muted);}.hm strong{color:var(--text);}
+
+/* TWO COL */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
+
+/* BAR */
+.brow{display:flex;align-items:center;gap:8px;margin-bottom:7px;}
+.blbl{font-size:11px;color:var(--muted);flex:0 0 190px;text-align:right;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.btrack{flex:1;height:18px;background:var(--surface);border-radius:3px;overflow:hidden;}
+.bfill{height:18px;border-radius:3px;display:flex;align-items:center;padding-left:7px;
+  font-size:10px;font-weight:700;color:rgba(255,255,255,.9);min-width:4px;}
+.bval{font-size:11px;font-weight:700;flex:0 0 32px;}
+
+/* SCORE PILL */
+.sp{display:inline-flex;align-items:center;justify-content:center;
+  width:42px;height:20px;border-radius:4px;font-size:11px;font-weight:700;}
+.s-r{background:rgba(239,68,68,.15);color:var(--red);border:1px solid rgba(239,68,68,.25);}
+.s-a{background:rgba(245,158,11,.15);color:var(--amber);border:1px solid rgba(245,158,11,.25);}
+.s-g{background:rgba(16,185,129,.15);color:var(--green);border:1px solid rgba(16,185,129,.25);}
+.s-b{background:rgba(79,142,247,.15);color:var(--accent);border:1px solid rgba(79,142,247,.25);}
+
+/* CLIENT CARDS */
+.cl-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;margin-bottom:14px;}
+.cl-card{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px 18px;
+  border-left:3px solid var(--border);}
+
+/* PROJECT TABLE */
+.ptbl{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}
+.ptbl th{background:var(--surface);color:var(--muted);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.06em;padding:9px 12px;text-align:left;
+  border-bottom:1px solid var(--border);position:sticky;top:0;}
+.ptbl td{padding:10px 12px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.ptbl tr:last-child td{border-bottom:none;}
+.ptbl tr.detail-row td{padding:0;}
+.ptbl tr:hover:not(.detail-row) td{background:rgba(255,255,255,.015);}
+
+/* DETAIL PANEL */
+.det{display:none;background:var(--surface);border-top:1px solid var(--border);padding:14px 16px;}
+.det.open{display:flex;flex-direction:column;gap:14px;}
+.area-block{display:flex;flex-direction:column;gap:8px;}
+.area-hdr{display:flex;align-items:center;gap:8px;padding-bottom:6px;border-bottom:1px solid var(--border);}
+.area-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;}
+.det-item{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px;
+  border-left:3px solid var(--border);}
+.det-cat{font-size:12px;font-weight:600;margin-bottom:4px;}
+.det-actions{font-size:11px;color:var(--muted);line-height:1.7;background:var(--surface);
+  border-radius:5px;padding:8px 10px;}
+
+/* TOGGLE BTN */
+.tbtn{all:unset;box-sizing:border-box;font-size:10px;color:var(--accent);cursor:pointer;
+  padding:3px 8px;border:1px solid rgba(79,142,247,.25);border-radius:5px;white-space:nowrap;}
+.tbtn:hover{background:rgba(79,142,247,.08);}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;}
+.b-blue{background:rgba(79,142,247,.12);color:var(--accent);border:1px solid rgba(79,142,247,.2);}
+.b-purple{background:rgba(139,92,246,.12);color:var(--purple);border:1px solid rgba(139,92,246,.2);}
+.b-amber{background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.2);}
+
+/* ACTION CARDS */
+.ac-card{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:13px 15px;margin-bottom:9px;}
+.ac-card.c-r{border-left:3px solid var(--red);}
+.ac-card.c-a{border-left:3px solid var(--amber);}
+.ac-card.c-g{border-left:3px solid var(--green);}
+.ac-head{display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.ac-meta{font-size:10px;color:var(--muted);margin-bottom:3px;}
+.ac-title{font-size:13px;font-weight:600;}
+.ac-body{display:none;margin-top:10px;background:var(--surface);border-radius:6px;
+  padding:10px 12px;font-size:11px;color:var(--muted);line-height:1.8;
+  border-left:2px solid var(--accent);}
+.ac-body.open{display:block;}
+.ac-line{display:flex;gap:5px;}
+.ac-line::before{content:'›';color:var(--accent);flex-shrink:0;}
+
+/* SECTION TITLE */
+.sec-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;
+  color:var(--muted);margin:0 0 10px;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+@media(max-width:800px){.krow{grid-template-columns:1fr 1fr}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD -->
+<div id="pw">
+  <div class="pw-box">
+    <div class="pw-brand">Engineering <b>Pulse</b></div>
+    <div class="pw-tag">Practices Monitoring Dashboard</div>
+    <div class="pw-lk">🔐</div>
+    <input class="pw-inp" id="pwi" type="password" placeholder="••••••••"/>
+    <button class="pw-btn" id="pw-btn">Unlock Dashboard</button>
+    <div class="pw-err" id="pwe"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="brand">Engineering <b>Pulse</b></div>
+    <div class="topbar-right" id="chips"></div>
+  </div>
+
+  <div class="fbar">
+    <span class="flbl">Filter:</span>
+    <select class="fsel" id="fc"><option value="">All Clients</option></select>
+    <select class="fsel" id="fp"><option value="">All Projects</option></select>
+    <select class="fsel" id="fa"><option value="">All Areas</option></select>
+    <select class="fsel" id="fcat"><option value="">All Categories</option></select>
+    <button class="freset" id="freset">↺ Reset</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="ov">📊 Overview</button>
+    <button class="tab" data-tab="pr">📁 Project Drill-Down</button>
+    <button class="tab" data-tab="ac">⚡ Action Points</button>
+  </div>
+
+  <div class="wrap">
+    <div id="ov" class="pg on"></div>
+    <div id="pr" class="pg"></div>
+    <div id="ac" class="pg"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+
+// bind password screen
+document.getElementById('pw-btn').addEventListener('click', auth);
+document.getElementById('pwi').addEventListener('keydown', function(e){ if(e.key==='Enter') auth(); });
+
+// bind filters
+['fc','fp','fa','fcat'].forEach(id => document.getElementById(id).addEventListener('change', applyF));
+document.getElementById('freset').addEventListener('click', resetF);
+
+// bind tabs
+document.querySelectorAll('.tab[data-tab]').forEach(btn =>
+  btn.addEventListener('click', () => showTab(btn.dataset.tab))
+);
+
+}); // end DOMContentLoaded
+
+const DATA=[{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Team Structure & Ways of Working","score":3.8,"nextLevel":5,"actions":"Maintain structured agile ceremonies (planning, retros, refinement).\nStandardize onboarding and knowledge sharing.\nIntroduce engineering guilds and track delivery metrics (lead time, cycle time, predictability)."},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Software Architecture & Backend Engineering","score":4.3,"nextLevel":5,"actions":"Standardize clean/hexagonal architecture across all services.\nMaintain ADRs for design decisions.\nStrengthen modular microservice patterns and enforce architecture consistency."},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Quality Engineering & Testing","score":3.0,"nextLevel":5,"actions":"Expand automated test coverage for regression safety.\nIntroduce stronger integration + contract testing across services.\nMaintain quality dashboards for coverage and defect leakage."},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":5.0,"nextLevel":5,"actions":"Enforce OpenAPI/Swagger as mandatory standard.\nMaintain architecture diagrams and service dependency maps.\nAdopt documentation-as-code integrated with repos."},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"DevOps: CI/CD & Security","score":4.7,"nextLevel":5,"actions":"Strengthen CI/CD automation with rollback and release governance.\nAdd SBOM generation and tighter security scanning in pipelines.\nImprove deployment observability."},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Team Structure & Ways of Working","score":2.6,"nextLevel":3,"actions":"Formalize onboarding program with structured KT and buddy system.\nImprove estimation accuracy using historical velocity.\nIntroduce structured training and guild sessions."},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Software Architecture & Backend Engineering","score":3.0,"nextLevel":4,"actions":"Introduce performance observability (APM dashboards).\nTrack technical debt in backlog systematically.\nImprove scalability and profiling practices."},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Quality Engineering & Testing","score":3.0,"nextLevel":4,"actions":"Expand unit and integration test coverage.\nIntroduce contract testing and basic load testing for critical services."},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.5,"nextLevel":5,"actions":"Standardize API documentation practices.\nImprove system design documentation and enforce centralized knowledge base usage."},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"DevOps: CI/CD & Security","score":4.3,"nextLevel":5,"actions":"Strengthen CI/CD maturity with automated quality gates.\nImprove vulnerability scanning and proactive security enforcement."},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Team Structure & Ways of Working","score":3.8,"nextLevel":4,"actions":"Improve estimation accuracy using refinement cycles.\nIntroduce structured training programs and quarterly skill development sessions."},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Software Architecture & Backend Engineering","score":4.3,"nextLevel":5,"actions":"Strengthen modular service design and ensure consistent architecture practices.\nTrack and reduce technical debt systematically."},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Quality Engineering & Testing","score":3.0,"nextLevel":4,"actions":"Increase automated integration testing coverage.\nDefine minimum test coverage standards per service."},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":5.0,"nextLevel":5,"actions":"Strengthen API documentation standardization.\nImprove system-level design documentation consistency."},{"client":"Investec","project":"Investec PB","area":"Backend","category":"DevOps: CI/CD & Security","score":4.7,"nextLevel":5,"actions":"Improve CI/CD maturity with better automation and deployment observability.\nAdd stronger rollback mechanisms."},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"DevOps: CI/CD & Security","score":2.0,"nextLevel":3,"actions":"Replace manual builds/FTP with CI/CD pipelines.\nIntroduce staging environments and automated deployments."},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Quality Engineering & Testing","score":1.0,"nextLevel":3,"actions":"Introduce unit and integration testing baseline.\nEstablish minimum coverage expectations and QA automation."},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Team Structure & Ways of Working","score":2.8,"nextLevel":3,"actions":"Enforce PR reviews and coding standards.\nIntroduce structured onboarding and agile maturity improvements."},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Software Architecture & Backend Engineering","score":3.3,"nextLevel":4,"actions":"Improve modular architecture adoption and enforce consistent patterns across services."},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.0,"nextLevel":4,"actions":"Define and version all APIs using OpenAPI specifications before implementation.\nGenerate API mocks automatically to enable parallel frontend and backend development."},{"client":"Discovery","project":"Vitality","area":"Backend","category":"Quality Engineering & Testing","score":2.0,"nextLevel":3,"actions":"Improve automated testing coverage.\nIntroduce structured QA pipelines and reduce dependency on manual testing."},{"client":"Discovery","project":"Vitality","area":"Backend","category":"DevOps: CI/CD & Security","score":3.3,"nextLevel":4,"actions":"Strengthen CI/CD security integration and shift from reactive to proactive vulnerability management."},{"client":"Discovery","project":"Vitality","area":"Backend","category":"Software Architecture & Backend Engineering","score":3.3,"nextLevel":4,"actions":"Move towards cleaner architecture patterns and reduce manual performance checks via observability tools."},{"client":"Discovery","project":"Vitality","area":"Backend","category":"Team Structure & Ways of Working","score":3.4,"nextLevel":4,"actions":"Formalize onboarding and improve estimation discipline.\nIntroduce structured knowledge sharing practices."},{"client":"Discovery","project":"Vitality","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":3.0,"nextLevel":4,"actions":"Create and maintain architecture diagrams, service interaction maps, and data flow documentation in a centralized repository accessible to all teams.\nImplement API mocks and contract reviews as part of the development lifecycle, and establish regular backend–frontend synchronization sessions to align on changes and dependencies."},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":3.2,"nextLevel":4,"actions":"Improve onboarding structure and enforce consistent coding standards.\nIntroduce stronger review discipline."},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":3.6,"nextLevel":4,"actions":"Improve API contract collaboration with backend.\nStrengthen modular UI architecture consistency."},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Quality Engineering & Testing","score":3.5,"nextLevel":4,"actions":"Increase automated testing coverage (unit + E2E).\nImprove performance tracking via Core Web Vitals."},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":3.5,"nextLevel":5,"actions":"Enhance CI/CD governance and improve frontend release observability and stability checks."},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":2.5,"nextLevel":3,"actions":"Consolidate UI, API, and workflow documentation in a single platform (e.g., Confluence) with defined ownership and regular review cycles.\nDocument end-to-end business workflows, user journeys, and system interactions, linking Figma designs, API specifications, and implementation artifacts to provide complete traceability across teams."},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":4.0,"nextLevel":5,"actions":"Maintain strong innovation culture.\nStandardize knowledge sharing and scale best practices across teams."},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":4.5,"nextLevel":5,"actions":"Ensure consistency across monorepo architecture.\nStrengthen API contract automation."},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":3.8,"nextLevel":5,"actions":"Further strengthen automated security checks and dependency governance."},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Quality Engineering & Testing","score":3.3,"nextLevel":4,"actions":"Improve E2E automation consistency across modules."},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":3.0,"nextLevel":4,"actions":"Extend Storybook coverage to all reusable UI components and ensure every service, API, and workflow has standardized documentation with defined ownership.\nIntegrate documentation validation into CI/CD pipelines, including checks for Storybook updates, OpenAPI specification changes, and README completeness whenever code changes are introduced.\nLink Figma designs, Storybook components, OpenAPI specifications, Confluence requirements, and implementation artifacts to provide a single navigable path from business requirements through to deployed functionality."},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":2.7,"nextLevel":3,"actions":"Improve code review discipline and enforce consistent standards.\nStrengthen onboarding and adoption consistency."},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":2.5,"nextLevel":3,"actions":"Improve deployment automation and reduce manual processes (FTP/build uploads)."},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Quality Engineering & Testing","score":2.0,"nextLevel":3,"actions":"Introduce unit testing and improve accessibility + performance validation."},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":4.0,"nextLevel":4,"actions":"Improve modular UI architecture and enforce reusable component strategy."},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":2.0,"nextLevel":3,"actions":""},{"client":"Investec","project":"CXT","area":"Mobile Dev","category":"Team Structure & Ways of Working","score":5.0,"nextLevel":5,"actions":"Maintain strong agile execution and knowledge-sharing culture. Scale best practices across teams."},{"client":"Investec","project":"CXT","area":"Mobile Dev","category":"Software Architecture & Backend Engineering","score":4.5,"nextLevel":5,"actions":"Improve architecture consistency and reduce remaining structural gaps."},{"client":"Investec","project":"CXT","area":"Mobile Dev","category":"Quality Engineering & Testing","score":4.5,"nextLevel":5,"actions":"Expand device coverage strategy and enhance automated regression testing."},{"client":"Investec","project":"CXT","area":"Mobile Dev","category":"DevOps: CI/CD & Security","score":5.0,"nextLevel":5,"actions":"Maintain strong CI/CD maturity and release governance discipline."},{"client":"Discovery","project":"Vitality","area":"Mobile Dev","category":"Quality Engineering & Testing","score":4.0,"nextLevel":4,"actions":"Improve automated testing coverage across devices and strengthen regression safety."},{"client":"Discovery","project":"Vitality","area":"Mobile Dev","category":"Software Architecture & Backend Engineering","score":3.5,"nextLevel":4,"actions":"Improve architecture maturity and reduce technical debt via structured refactoring."},{"client":"Discovery","project":"Vitality","area":"Mobile Dev","category":"Team Structure & Ways of Working","score":3.6,"nextLevel":4,"actions":"Strengthen structured onboarding and improve estimation and planning discipline."},{"client":"Discovery","project":"Vitality","area":"Mobile Dev","category":"DevOps: CI/CD & Security","score":4.3,"nextLevel":5,"actions":"Improve CI/CD maturity and strengthen release automation and observability."},{"client":"Discovery","project":"Vitality","area":"Mobile Dev","category":"Documentation & Cross-Team Collaboration","score":5.0,"nextLevel":5,"actions":"Evolve the reusable design system into a governed library with versioning, ownership, and strict guidelines for adoption across teams."},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Team Structure & Ways of Working","score":4.6,"nextLevel":5,"actions":"Standardize onboarding & knowledge sharing\nInstitutionalize knowledge sharing\nDefine clear working agreements (DoR, DoD, estimation standards)\nAlign backlog refinement practices across teams"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Software Architecture & Backend Engineering","score":4.8,"nextLevel":5,"actions":"Strengthen contract-first architecture\nFormalize technical debt governance\nEnhance observability-driven scalability"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Quality Engineering & Testing","score":5.0,"nextLevel":5,"actions":"Expand contract tests across all service boundaries\nEnforce testing pyramid adherence in code reviews"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.0,"nextLevel":5,"actions":"Unify documentation ecosystem\nAdopt contract-driven development using OpenAPI + mocks"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"DevOps: CI/CD & Security","score":4.3,"nextLevel":5,"actions":"Create reusable pipeline templates across all services\nImplement canary / blue-green deployments for all critical services"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":4.0,"nextLevel":5,"actions":"Introduce structured PR checklist (performance, security, accessibility, standards)\nCreate guided onboarding journeys (setup → architecture → first feature)"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":4.3,"nextLevel":5,"actions":"Create a reference architecture template (feature-based + atomic design + state management rules)\nAdd API contract checks in CI to prevent breaking changes"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Quality Engineering & Testing","score":3.0,"nextLevel":4,"actions":"Add contract testing for API + UI integration"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":4.0,"nextLevel":5,"actions":"Link Storybook, API specs, Confluence, and design system into one navigation flow\nEnforce documentation updates as part of PR completion criteria"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":4.8,"nextLevel":5,"actions":"Schedule periodic penetration testing for UI applications"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Team Structure & Ways of Working","score":4.8,"nextLevel":5,"actions":"Convert wikis/guild learning into guided onboarding paths\nEnsure consistent DoD/DoR across all squads"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Software Architecture & Backend Engineering","score":4.5,"nextLevel":5,"actions":"Define explicit support matrix (OS versions, device tiers, deprecation policy)\nTag debt items systematically in backlog (severity + impact + ownership)"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Quality Engineering & Testing","score":4.0,"nextLevel":5,"actions":"Add automated UI/E2E tests for critical user journeys\nInclude device/OS matrix testing in CI pipeline"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Documentation & Cross-Team Collaboration","score":5.0,"nextLevel":5,"actions":"Enforce doc updates as part of PR completion criteria\nRegular audits of outdated documentation"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"DevOps: CI/CD & Security","score":5.0,"nextLevel":5,"actions":"Expand vulnerability scanning coverage (dependencies + runtime + mobile-specific checks)\nImprove observability dashboards for release health"}];
+
+let F=[...DATA];
+
+// ── AUTH ──────────────────────────────────────────────────────
+function auth(){
+  if(document.getElementById('pwi').value==='exaze2025'){
+    document.getElementById('pw').style.display='none';
+    const a=document.getElementById('app');
+    a.style.display='flex';a.style.flexDirection='column';
+    init();
+  } else {
+    const e=document.getElementById('pwe');
+    e.textContent='Incorrect password.';
+    setTimeout(()=>e.textContent='',2500);
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+const avg=a=>a.length?+(a.reduce((s,v)=>s+v,0)/a.length).toFixed(2):0;
+const uniq=a=>[...new Set(a)].sort();
+const sc=v=>v>=4.5?'#4f8ef7':v>=3.5?'#10b981':v>=2.5?'#f59e0b':'#ef4444';
+const band=v=>v>=4.5?'Excellent':v>=3.5?'Good':v>=2.5?'Needs Work':'Critical';
+const pill=v=>{const c=v>=4.5?'s-b':v>=3.5?'s-g':v>=2.5?'s-a':'s-r';return`<span class="sp ${c}">${v.toFixed(1)}</span>`;};
+const pct=(v,m=5)=>Math.round(v/m*100);
+
+// ── INIT ──────────────────────────────────────────────────────
+function init(){
+  const cl=uniq(DATA.map(r=>r.client)),ar=uniq(DATA.map(r=>r.area)),ca=uniq(DATA.map(r=>r.category));
+  const fc=document.getElementById('fc'),fa=document.getElementById('fa'),fcat=document.getElementById('fcat');
+  cl.forEach(c=>fc.innerHTML+=`<option>${c}</option>`);
+  ar.forEach(a=>fa.innerHTML+=`<option>${a}</option>`);
+  ca.forEach(c=>fcat.innerHTML+=`<option>${c}</option>`);
+  buildChips();renderAll();
+}
+
+function buildChips(){
+  const t=avg(DATA.map(r=>r.score));
+  document.getElementById('chips').innerHTML=`
+    <div class="chip">Score <strong style="color:${sc(t)}">${t.toFixed(2)}/5</strong></div>
+    <div class="chip"><strong>${uniq(DATA.map(r=>r.client)).length}</strong> Clients</div>
+    <div class="chip"><strong>${uniq(DATA.map(r=>r.project)).length}</strong> Projects</div>`;
+}
+
+function applyF(){
+  const cl=document.getElementById('fc').value,pr=document.getElementById('fp').value,
+        ar=document.getElementById('fa').value,ca=document.getElementById('fcat').value;
+  F=DATA.filter(r=>(!cl||r.client===cl)&&(!pr||r.project===pr)&&(!ar||r.area===ar)&&(!ca||r.category===ca));
+  if(cl){
+    const fp=document.getElementById('fp');
+    fp.innerHTML='<option value="">All Projects</option>';
+    uniq(DATA.filter(r=>r.client===cl).map(r=>r.project)).forEach(p=>fp.innerHTML+=`<option>${p}</option>`);
+  }
+  renderAll();
+}
+
+function resetF(){
+  ['fc','fp','fa','fcat'].forEach(id=>{
+    const el=document.getElementById(id);el.value='';
+    if(id==='fp')el.innerHTML='<option value="">All Projects</option>';
+  });
+  F=[...DATA];renderAll();
+}
+
+function showTab(t){
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',['ov','pr','ac'][i]===t));
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById(t).classList.add('on');
+}
+
+function renderAll(){renderOv();renderPr();renderAc();}
+
+// ── OVERVIEW ──────────────────────────────────────────────────
+function renderOv(){
+  const d=F,total=avg(d.map(r=>r.score));
+  const projs=uniq(d.map(r=>r.project));
+  const crit=projs.filter(p=>avg(d.filter(r=>r.project===p).map(r=>r.score))<2.5).length;
+  const excel=projs.filter(p=>avg(d.filter(r=>r.project===p).map(r=>r.score))>=4).length;
+  const gap=avg(d.map(r=>r.nextLevel-r.score));
+  const cats=uniq(d.map(r=>r.category));
+  const catAvgs=cats.map(c=>({c,s:avg(d.filter(r=>r.category===c).map(r=>r.score))})).sort((a,b)=>a.s-b.s);
+  const areas=uniq(d.map(r=>r.area));
+  const areaAvgs=areas.map(a=>({a,s:avg(d.filter(r=>r.area===a).map(r=>r.score))})).sort((a,b)=>a.s-b.s);
+  const clients=uniq(d.map(r=>r.client));
+
+  document.getElementById('ov').innerHTML=`
+<div class="hero">
+  <div class="hero-score" style="color:${sc(total)}">${total.toFixed(2)}</div>
+  <div class="hero-r">
+    <div class="hero-lbl">Overall Engineering Health</div>
+    <div class="hero-band" style="color:${sc(total)}">${band(total)}</div>
+    <div class="prog"><div class="prog-fill" style="width:${pct(total)}%;background:${sc(total)};"></div></div>
+    <div class="hero-meta">
+      <div class="hm"><strong>${uniq(d.map(r=>r.client)).length}</strong> Clients</div>
+      <div class="hm"><strong>${projs.length}</strong> Projects</div>
+      <div class="hm"><strong>${d.length}</strong> Assessments</div>
+      <div class="hm"><strong style="color:var(--red)">${crit}</strong> Critical</div>
+      <div class="hm"><strong style="color:var(--green)">${excel}</strong> Excellent</div>
+    </div>
+  </div>
+</div>
+
+<div class="krow">
+  <div class="kpi k-blue"><div class="kpi-lbl">Portfolio Score</div><div class="kpi-val" style="color:${sc(total)}">${total.toFixed(2)}</div><div class="kpi-sub">Out of 5.0</div></div>
+  <div class="kpi k-red"><div class="kpi-lbl">Critical Projects</div><div class="kpi-val" style="color:var(--red)">${crit}</div><div class="kpi-sub">Score below 2.5</div></div>
+  <div class="kpi k-green"><div class="kpi-lbl">Excellent Projects</div><div class="kpi-val" style="color:var(--green)">${excel}</div><div class="kpi-sub">Score 4.0 and above</div></div>
+  <div class="kpi k-amber"><div class="kpi-lbl">Total Assessments</div><div class="kpi-val" style="color:var(--amber)">${d.length}</div><div class="kpi-sub">Across all projects</div></div>
+</div>
+
+<div class="two">
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sec-title" style="margin:0;">Client Scores</div>
+      <div style="font-size:10px;color:var(--accent);display:flex;align-items:center;gap:4px;">
+        <span>👆</span><span>Click a bar to view project breakdown</span>
+      </div>
+    </div>
+    ${clients.map(cl=>{
+      const s=avg(d.filter(r=>r.client===cl).map(r=>r.score));
+      const eid=`dr-cl-${cl.replace(/\s+/g,'_')}`;
+      return`<div class="brow" style="cursor:pointer;" onclick="goToProject('${cl}')">
+        <div class="blbl">${cl}</div>
+        <div class="btrack"><div class="bfill" style="width:${pct(s)}%;background:${sc(s)};transition:opacity .15s;">${s.toFixed(2)}</div></div>
+        <div class="bval" style="color:${sc(s)}">${s.toFixed(2)}</div>
+      </div>`;
+    }).join('')}
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div class="sec-title" style="margin:0;">Category Scores</div>
+      <div style="font-size:10px;color:var(--accent);display:flex;align-items:center;gap:4px;">
+        <span>👆</span><span>Click a bar to drill down</span>
+      </div>
+    </div>
+    ${catAvgs.map(({c,s})=>{
+      const eid=`dr-cat-${c.replace(/[\s:&\/]+/g,'_')}`;
+      const catRows=d.filter(r=>r.category===c);
+      const catClients=uniq(catRows.map(r=>r.client));
+      return`<div class="brow" style="cursor:pointer;" onclick="drillDown('${eid}','${c}','category',this)">
+        <div class="blbl" style="flex:0 0 210px;">${c.length>28?c.slice(0,27)+'…':c}</div>
+        <div class="btrack"><div class="bfill" style="width:${pct(s)}%;background:${sc(s)};transition:opacity .15s;">${s.toFixed(1)}</div></div>
+        <div class="bval" style="color:${sc(s)}">${s.toFixed(1)}</div>
+      </div>
+      <div id="${eid}" style="display:none;margin:0 0 10px 0;padding:10px;background:var(--surface);border-radius:7px;border-left:2px solid var(--accent2,#6366f1);">
+        ${catClients.map(cl=>{
+          const clRows=catRows.filter(r=>r.client===cl);
+          return`<div style="margin-bottom:10px;">
+            <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">${cl}</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:6px;">
+            ${clRows.map(row=>`
+              <div style="background:var(--card);border:1px solid var(--border);border-radius:6px;padding:9px 11px;border-left:3px solid ${sc(row.score)};">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                  <div style="font-size:11px;font-weight:600;">${row.project}</div>
+                  <div style="display:flex;gap:4px;flex-shrink:0;">${pill(row.score)}<span class="badge b-amber">→${row.nextLevel}</span></div>
+                </div>
+                <div style="margin-bottom:5px;"><span class="badge b-purple">${row.area}</span></div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.7;background:var(--surface);border-radius:4px;padding:6px 8px;">
+                  ${row.actions.split('\n').filter(Boolean).map(a=>`<div style="display:flex;gap:4px;"><span style="color:var(--accent)">›</span><span>${a.trim()}</span></div>`).join('')}
+                </div>
+              </div>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('')}
+  </div>
+</div>
+
+<div class="card" style="margin-bottom:14px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div class="sec-title" style="margin:0;">Area Scores</div>
+    <div style="font-size:10px;color:var(--accent);display:flex;align-items:center;gap:4px;">
+      <span>👆</span><span>Click a bar to view breakdown</span>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px 24px;">
+  ${areaAvgs.map(({a,s})=>{
+    const eid=`dr-area-${a.replace(/[\s:&\/]+/g,'_')}`;
+    return`<div>
+      <div class="brow" style="cursor:pointer;margin-bottom:0;" onclick="drillDown('${eid}','${a}','area',this)">
+        <div class="blbl" style="flex:0 0 110px;"><span class="badge b-purple">${a}</span></div>
+        <div class="btrack"><div class="bfill" style="width:${pct(s)}%;background:${sc(s)};transition:opacity .15s;">${s.toFixed(2)}</div></div>
+        <div class="bval" style="color:${sc(s)}">${s.toFixed(2)}</div>
+      </div>
+      <div id="${eid}" style="display:none;margin:8px 0 4px 0;padding:10px;background:var(--surface);border-radius:7px;border-left:2px solid var(--accent2,#6366f1);">
+        ${(()=>{
+          const aRows=d.filter(r=>r.area===a);
+          const aCats=uniq(aRows.map(r=>r.category)).map(c=>({c,s:avg(aRows.filter(r=>r.category===c).map(r=>r.score))})).sort((x,y)=>x.s-y.s);
+          return aCats.map(({c,s:cs})=>`
+            <div class="brow" style="margin-bottom:6px;">
+              <div class="blbl" style="flex:0 0 170px;font-size:11px;">${c.length>26?c.slice(0,25)+'…':c}</div>
+              <div class="btrack" style="height:16px;"><div class="bfill" style="height:16px;width:${pct(cs)}%;background:${sc(cs)};font-size:10px;">${cs.toFixed(1)}</div></div>
+              <div class="bval" style="font-size:11px;color:${sc(cs)}">${cs.toFixed(1)}</div>
+            </div>`).join('');
+        })()}
+      </div>
+    </div>`;
+  }).join('')}
+  </div>
+</div>
+
+<div style="display:none;"><div id="ov-drill">
+    ${clients.map(cl=>{
+      const crows=d.filter(r=>r.client===cl);
+      const cprojs=uniq(crows.map(r=>r.project));
+      return`<div style="margin-bottom:14px;">
+        <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--border);">${cl}</div>
+        ${cprojs.map(pr=>{
+          const prows=crows.filter(r=>r.project===pr);
+          const ps=avg(prows.map(r=>r.score));
+          return`<div style="margin-bottom:10px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px;">
+              <span style="font-size:12px;font-weight:600;">${pr}</span>${pill(ps)}
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:7px;">
+            ${prows.map(row=>`
+              <div style="background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:10px 12px;border-left:3px solid ${sc(row.score)};">
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;">
+                  <div style="font-size:11px;font-weight:600;">${row.category}</div>
+                  <div style="display:flex;gap:4px;flex-shrink:0;">${pill(row.score)}<span class="badge b-amber">→${row.nextLevel}</span></div>
+                </div>
+                <div style="margin-bottom:5px;"><span class="badge b-purple">${row.area}</span></div>
+                <div style="font-size:11px;color:var(--muted);line-height:1.7;background:var(--card);border-radius:4px;padding:7px 9px;">
+                  ${row.actions.split('\n').filter(Boolean).map(a=>`<div style="display:flex;gap:4px;"><span style="color:var(--accent)">›</span><span>${a.trim()}</span></div>`).join('')}
+                </div>
+              </div>`).join('')}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('')}
+  </div></div>`;
+}
+
+// ── PROJECT DRILL-DOWN ────────────────────────────────────────
+function renderPr(){
+  const d=F;
+  const clients=uniq(d.map(r=>r.client));
+
+  // Build project data grouped by client
+  const byClient=clients.map(cl=>{
+    const crows=d.filter(r=>r.client===cl);
+    const projs=uniq(crows.map(r=>r.project)).map(p=>{
+      const rows=crows.filter(r=>r.project===p);
+      return{p,cl,sc:avg(rows.map(r=>r.score)),rows};
+    }).sort((a,b)=>a.sc-b.sc);
+    return{cl,projs,avg:avg(crows.map(r=>r.score))};
+  });
+
+  let html=`<div id="pr-back-row" style="display:none;align-items:center;margin-bottom:14px;">
+    <button onclick="backToOverview()" style="all:unset;cursor:pointer;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--accent);padding:7px 14px;border:1px solid var(--accent);border-radius:6px;background:rgba(79,142,247,.08);">
+      <span>←</span><span>Back to Overview</span>
+    </button>
+  </div>`;
+  let idx=0;
+  byClient.forEach(({cl,projs,avg:cavg})=>{
+    let tbody='';
+    projs.forEach(r=>{
+      const did=`det-${idx++}`;
+      const areas=uniq(r.rows.map(row=>row.area));
+      tbody+=`<tr>
+        <td style="font-weight:600;word-break:break-word;">${r.p}</td>
+        <td>${pill(r.sc)}</td>
+        <td style="color:${sc(r.sc)};font-weight:600;">${band(r.sc)}</td>
+        <td><button class="tbtn" onclick="togDet('${did}',this)">▼ Expand</button></td>
+      </tr>
+      <tr class="detail-row"><td colspan="4">
+        <div class="det" id="${did}">
+          ${areas.map(area=>{
+            const aRows=r.rows.filter(row=>row.area===area);
+            const aScore=avg(aRows.map(row=>row.score));
+            return`<div class="area-block">
+              <div class="area-hdr">
+                <span class="badge b-purple">${area}</span>
+                <span style="font-size:11px;color:var(--muted);">Area avg</span>${pill(aScore)}
+              </div>
+              <div class="area-grid">
+                ${aRows.map(row=>`
+                <div class="det-item" style="border-left-color:${sc(row.score)};">
+                  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+                    <div class="det-cat">${row.category}</div>
+                    <div style="display:flex;gap:5px;flex-shrink:0;">${pill(row.score)}<span class="badge b-amber">→${row.nextLevel}</span></div>
+                  </div>
+                  <div class="det-actions">
+                    ${row.actions.split('\n').filter(Boolean).map(a=>`<div class="ac-line">${a.trim()}</div>`).join('')}
+                  </div>
+                </div>`).join('')}
+              </div>
+            </div>`;
+          }).join('')}
+        </div>
+      </td></tr>`;
+    });
+
+    html+=`
+<div class="card" data-client="${cl}" style="overflow:visible;margin-bottom:14px;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--border);">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="font-size:14px;font-weight:800;color:var(--accent);">${cl}</div>
+      <span class="badge b-blue">${projs.length} project${projs.length>1?'s':''}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:var(--muted);">Client avg</span>${pill(cavg)}
+    </div>
+  </div>
+  <table class="ptbl">
+    <colgroup>
+      <col style="width:38%;">
+      <col style="width:90px;">
+      <col style="width:120px;">
+      <col style="width:110px;">
+    </colgroup>
+    <thead><tr>
+      <th>Project</th><th>Score</th><th>Band</th><th></th>
+    </tr></thead>
+    <tbody>${tbody}</tbody>
+  </table>
+</div>`;
+  });
+
+  document.getElementById('pr').innerHTML=html;
+}
+
+// ── ACTION POINTS ─────────────────────────────────────────────
+function renderAc(){
+  const sorted=[...F].sort((a,b)=>a.score-b.score);
+  let html=`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+    <span class="badge b-blue">${sorted.filter(r=>r.score<2.5).length} Critical</span>
+    <span style="display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:rgba(245,158,11,.12);color:var(--amber);border:1px solid rgba(245,158,11,.2);">${sorted.filter(r=>r.score>=2.5&&r.score<3.5).length} Needs Work</span>
+    <span style="display:inline-block;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:700;background:rgba(16,185,129,.12);color:var(--green);border:1px solid rgba(16,185,129,.2);">${sorted.filter(r=>r.score>=3.5).length} Good / Excellent</span>
+  </div>`;
+
+  sorted.forEach((r,i)=>{
+    const cls=r.score<2.5?'c-r':r.score<3.5?'c-a':'c-g';
+    const dot=r.score<2.5?'🔴':r.score<3.5?'🟡':'🟢';
+    html+=`<div class="ac-card ${cls}">
+      <div class="ac-head">
+        <div>
+          <div class="ac-meta">${dot} ${r.client} › ${r.project} › <span class="badge b-purple">${r.area}</span></div>
+          <div class="ac-title">${r.category}</div>
+        </div>
+        <div style="display:flex;gap:7px;align-items:center;flex-shrink:0;">
+          ${pill(r.score)}<span class="badge b-amber">→${r.nextLevel}</span>
+          <button class="tbtn" onclick="togAc('ab-${i}',this)">▼ Actions</button>
+        </div>
+      </div>
+      <div class="ac-body" id="ab-${i}">
+        ${r.actions.split('\n').filter(Boolean).map(a=>`<div class="ac-line">${a.trim()}</div>`).join('')}
+      </div>
+    </div>`;
+  });
+
+  document.getElementById('ac').innerHTML=html;
+}
+
+// ── TOGGLE HELPERS (global — called from dynamic innerHTML) ───
+function goToProject(clientName){
+  showTab('pr');
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',['ov','pr','ac'][i]==='pr'));
+  // show back button
+  const backRow=document.getElementById('pr-back-row');
+  if(backRow) backRow.style.display='flex';
+  // expand and scroll to the matching client card
+  setTimeout(()=>{
+    const card=document.querySelector(`[data-client="${clientName}"]`);
+    if(card){
+      card.scrollIntoView({behavior:'smooth',block:'start'});
+      card.style.boxShadow='0 0 0 2px var(--accent)';
+      setTimeout(()=>{card.style.boxShadow='';},1800);
+    }
+  },80);
+}
+function backToOverview(){
+  showTab('ov');
+  document.querySelectorAll('.tab').forEach((b,i)=>b.classList.toggle('on',['ov','pr','ac'][i]==='ov'));
+}
+function drillDown(id, label, type, rowEl){
+  const el=document.getElementById(id);
+  if(!el) return;
+  const open=el.style.display!=='none';
+  // close all other open drill-downs of same type
+  document.querySelectorAll('[id^="dr-'+type+'-"]').forEach(d=>{
+    if(d.id!==id) d.style.display='none';
+  });
+  el.style.display=open?'none':'block';
+  // highlight active bar row
+  rowEl.style.background=open?'':'rgba(79,142,247,.06)';
+  rowEl.style.borderRadius='6px';
+}
+function togDet(id,btn){
+  const el=document.getElementById(id);
+  const open=el.classList.contains('open');
+  el.classList.toggle('open',!open);
+  btn.textContent=open?'▼ Expand':'▲ Collapse';
+}
+
+function togAc(id,btn){
+  const el=document.getElementById(id);
+  const open=el.classList.contains('open');
+  el.classList.toggle('open',!open);
+  btn.textContent=open?'▼ Actions':'▲ Close';
+}
+</script>
+</body>
+</html>
