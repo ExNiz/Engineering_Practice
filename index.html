@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Engineering Pulse</title>
+<style>
+:root{
+  --bg:#07090f;--surface:#0e1219;--card:#131926;--border:#1a2236;
+  --accent:#4f8ef7;--green:#10b981;--amber:#f59e0b;--red:#ef4444;--purple:#8b5cf6;--teal:#06b6d4;
+  --text:#e2e8f0;--muted:#6b7a99;--star-on:#f59e0b;--star-off:#2a3352;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);height:100vh;overflow:hidden;}
+
+/* PASSWORD */
+#pw{display:flex;align-items:center;justify-content:center;height:100vh;
+  background:radial-gradient(ellipse at 30% 25%,rgba(79,142,247,.12) 0%,transparent 55%),var(--bg);}
+.pw-box{width:380px;background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:44px 40px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6);}
+.pw-brand{font-size:26px;font-weight:800;margin-bottom:4px;letter-spacing:-.3px;}
+.pw-brand b{color:var(--accent);}
+.pw-tag{font-size:10.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:32px;}
+.pw-lk{font-size:34px;margin-bottom:20px;}
+.pw-inp{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:10px;
+  padding:13px 16px;color:#fff;font-size:15px;text-align:center;letter-spacing:.2em;outline:none;
+  margin-bottom:12px;transition:border-color .2s;}
+.pw-inp:focus{border-color:var(--accent);}
+.pw-btn{width:100%;background:linear-gradient(135deg,var(--accent),#6366f1);color:#fff;border:none;border-radius:10px;
+  padding:13px;font-weight:700;font-size:14px;cursor:pointer;transition:opacity .2s;}
+.pw-btn:hover{opacity:.88;}
+.pw-err{color:var(--red);font-size:12px;margin-top:8px;min-height:16px;}
+
+/* LAYOUT */
+#app{display:none;height:100vh;flex-direction:column;}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 22px;height:52px;
+  background:#060810;border-bottom:1px solid var(--border);flex-shrink:0;}
+.brand{font-size:17px;font-weight:800;letter-spacing:-.2px;}.brand b{color:var(--accent);}
+.topbar-right{display:flex;gap:8px;align-items:center;}
+.chip{background:var(--card);border:1px solid var(--border);border-radius:20px;
+  padding:4px 12px;font-size:11px;color:var(--muted);}
+.chip strong{color:var(--text);font-weight:700;}
+
+/* FILTERS */
+.fbar{display:flex;align-items:center;gap:8px;padding:9px 22px;
+  background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:wrap;}
+.flbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);}
+select.fsel{background:var(--card);border:1px solid var(--border);border-radius:7px;
+  padding:5px 10px;color:var(--text);font-size:12px;outline:none;cursor:pointer;}
+select.fsel:focus{border-color:var(--accent);}
+.freset{all:unset;box-sizing:border-box;font-size:11px;color:var(--accent);cursor:pointer;
+  padding:4px 10px;border:1px solid rgba(79,142,247,.3);border-radius:6px;}
+.freset:hover{background:rgba(79,142,247,.08);}
+
+/* TABS */
+.tabs{display:flex;background:var(--bg);border-bottom:1px solid var(--border);
+  padding:0 22px;flex-shrink:0;gap:2px;}
+.tab{all:unset;box-sizing:border-box;padding:12px 20px;font-size:12.5px;font-weight:500;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;
+  transition:color .15s,border-color .15s;}
+.tab:hover{color:var(--text);}
+.tab.on{color:#fff;border-bottom-color:var(--accent);font-weight:700;}
+
+/* PAGES */
+.wrap{flex:1;overflow-y:auto;padding:20px 22px;}
+.pg{display:none;}.pg.on{display:block;}
+
+/* CARD */
+.card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:18px 20px;}
+
+/* STARS */
+.stars{display:inline-flex;gap:3px;line-height:1;vertical-align:middle;}
+.star{font-size:16px;color:var(--star-off);}
+.star.on{color:var(--star-on);}
+.stars-sm .star{font-size:13px;}
+.stars-lg .star{font-size:26px;}
+.stars-xl .star{font-size:42px;}
+
+/* HERO */
+.hero{background:linear-gradient(135deg,#0e1422 0%,#111827 100%);border:1px solid var(--border);
+  border-radius:16px;padding:26px 28px;display:grid;grid-template-columns:auto 1fr auto;
+  gap:30px;align-items:center;margin-bottom:16px;position:relative;overflow:visible;}
+.hero::before{content:'';position:absolute;top:-80px;right:-80px;width:300px;height:300px;
+  background:radial-gradient(circle,rgba(79,142,247,.06) 0%,transparent 65%);}
+.hero-left{text-align:center;z-index:1;min-width:120px;}
+.hero-stars{margin-bottom:8px;}
+.hero-band{font-size:22px;font-weight:800;letter-spacing:-.3px;}
+.hero-lvl{font-size:11px;color:var(--muted);margin-top:4px;}
+.hero-mid{z-index:1;}
+.hero-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.hero-title{font-size:20px;font-weight:800;margin-bottom:8px;}
+.hero-desc{font-size:12.5px;color:var(--muted);line-height:1.7;max-width:400px;margin-bottom:14px;}
+.hero-meta{display:flex;gap:20px;flex-wrap:wrap;}
+.hm{font-size:12px;color:var(--muted);}.hm strong{color:var(--text);}
+.hero-right{z-index:1;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+
+/* MATURITY LEGEND */
+.mat-legend{display:flex;gap:10px;justify-content:flex-end;}
+.mat-pip-wrap{display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;}
+.mat-pip{display:inline-flex;align-items:center;justify-content:center;
+  width:30px;height:30px;border-radius:50%;border:2px solid;font-size:11px;
+  font-weight:800;cursor:default;}
+.mat-pip-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;
+  color:var(--muted);white-space:nowrap;}
+.mat-pip-wrap:hover .mat-pip-label{color:var(--text);}
+.mat-pip-wrap:hover .mat-tip{display:block;}
+.mat-tip{display:none;position:fixed;
+  width:240px;background:#1a2236;border:1px solid var(--border);border-radius:10px;
+  padding:13px 15px;font-size:11px;line-height:1.65;color:var(--text);
+  z-index:99999;box-shadow:0 12px 40px rgba(0,0,0,.7);text-align:left;pointer-events:none;}
+.mat-tip strong{display:block;font-size:12px;margin-bottom:5px;}
+.mat-tip::after{content:'';position:absolute;bottom:100%;left:50%;transform:translateX(-50%);
+  border:6px solid transparent;border-bottom-color:#1a2236;}
+.mat-desc{font-size:10.5px;color:var(--muted);line-height:1.6;margin-top:10px;
+  max-width:240px;text-align:right;}
+
+/* KPI ROW */
+.krow{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px;}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:18px 20px;
+  border-top:3px solid var(--border);}
+.kpi.k-red{border-top-color:var(--red);}
+.kpi.k-green{border-top-color:var(--green);}
+.kpi-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:10px;}
+.kpi-val{font-size:36px;font-weight:900;line-height:1;letter-spacing:-1px;}
+.kpi-sub{font-size:11px;color:var(--muted);margin-top:6px;}
+
+/* TWO COL */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+
+/* SCORE LIST */
+.srow{display:flex;align-items:center;justify-content:space-between;
+  padding:9px 0;border-bottom:1px solid var(--border);gap:12px;}
+.srow:last-child{border-bottom:none;}
+.srow-label{font-size:12.5px;color:#fff;font-weight:600;flex:1;}
+.srow-label.muted{color:#e2e8f0;font-size:11.5px;font-weight:500;}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:5px;font-size:10px;font-weight:700;}
+.b-blue{background:rgba(79,142,247,.1);color:var(--accent);border:1px solid rgba(79,142,247,.2);}
+.b-purple{background:rgba(139,92,246,.18);color:#fff;border:1px solid rgba(139,92,246,.35);font-weight:800;}
+.b-teal{background:rgba(6,182,212,.1);color:var(--teal);border:1px solid rgba(6,182,212,.2);}
+
+/* PROJECT TABLE */
+.ptbl{width:100%;border-collapse:collapse;font-size:12.5px;}
+.ptbl th{background:rgba(255,255,255,.02);color:var(--muted);font-size:10px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.07em;padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--border);}
+.ptbl td{padding:11px 14px;border-bottom:1px solid var(--border);vertical-align:middle;}
+.ptbl tr:last-child td{border-bottom:none;}
+.ptbl tr.detail-row td{padding:0;}
+.ptbl tr:hover:not(.detail-row) td{background:rgba(255,255,255,.018);}
+
+/* DETAIL PANEL */
+.det{display:none;background:var(--surface);border-top:1px solid var(--border);padding:18px 20px;}
+.det.open{display:flex;flex-direction:column;gap:18px;}
+
+/* AREA BLOCK */
+.area-block{display:flex;flex-direction:column;gap:12px;}
+.area-hdr{display:flex;align-items:center;gap:10px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+
+/* CATEGORY CARD — side by side layout */
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(460px,1fr));gap:12px;}
+.cat-card{background:var(--card);border:1px solid var(--border);border-radius:11px;
+  padding:0;overflow:hidden;border-left:3px solid var(--border);}
+.cat-card-head{display:flex;align-items:center;justify-content:space-between;
+  padding:12px 14px;border-bottom:1px solid var(--border);}
+.cat-card-body{display:grid;grid-template-columns:1fr 1fr;gap:0;}
+.cat-col{padding:12px 14px;}
+.cat-col:first-child{border-right:1px solid var(--border);}
+.cat-col-hdr{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;
+  margin-bottom:8px;}
+.cat-col-body{font-size:11.5px;color:var(--muted);line-height:1.75;}
+.cat-col-body .line{display:flex;gap:6px;margin-bottom:4px;}
+.cat-col-body .line::before{flex-shrink:0;margin-top:1px;}
+.cat-col.state .cat-col-hdr{color:var(--teal);}
+.cat-col.state .line::before{content:'◦';color:var(--teal);}
+.cat-col.actions .cat-col-hdr{color:var(--accent);}
+.cat-col.actions .line::before{content:'→';color:var(--accent);}
+
+/* LVL BADGE */
+.lvl-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;
+  border-radius:20px;font-size:10.5px;font-weight:700;border:1px solid;}
+
+/* TOGGLE BTN */
+.tbtn{all:unset;box-sizing:border-box;font-size:10px;color:var(--accent);cursor:pointer;
+  padding:4px 10px;border:1px solid rgba(79,142,247,.25);border-radius:6px;white-space:nowrap;}
+.tbtn:hover{background:rgba(79,142,247,.08);}
+
+/* SECTION TITLE */
+.sec-title{font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+  color:#94a3b8;margin:0 0 12px;}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:var(--surface);}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+@media(max-width:900px){
+  .krow{grid-template-columns:1fr 1fr}
+  .two{grid-template-columns:1fr}
+  .hero{grid-template-columns:1fr;gap:16px}
+  .cat-grid{grid-template-columns:1fr}
+  .cat-card-body{grid-template-columns:1fr}
+  .cat-col:first-child{border-right:none;border-bottom:1px solid var(--border)}
+}
+</style>
+</head>
+<body>
+
+<!-- PASSWORD -->
+<div id="pw">
+  <div class="pw-box">
+    <div class="pw-brand">Engineering <b>Pulse</b></div>
+    <div class="pw-tag">Practices Monitoring Dashboard</div>
+    <div class="pw-lk">⚙️</div>
+    <input class="pw-inp" id="pwi" type="password" placeholder="••••••••"/>
+    <button class="pw-btn" id="pw-btn">Unlock Dashboard</button>
+    <div class="pw-err" id="pwe"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="brand">Engineering <b>Pulse</b></div>
+    
+  </div>
+
+  <div class="fbar">
+    <span class="flbl">Filter:</span>
+    <select class="fsel" id="fc"><option value="">All Clients</option></select>
+    <select class="fsel" id="fp"><option value="">All Projects</option></select>
+    <select class="fsel" id="fa"><option value="">All Areas</option></select>
+    <select class="fsel" id="fcat"><option value="">All Categories</option></select>
+    <button class="freset" id="freset">↺ Reset</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="ov">📊 Overview</button>
+    <button class="tab" data-tab="pr">📁 Project Drill-Down</button>
+  </div>
+
+  <div class="wrap">
+    <div id="ov" class="pg on"></div>
+    <div id="pr" class="pg"></div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('pw-btn').addEventListener('click',auth);
+  document.getElementById('pwi').addEventListener('keydown',function(e){if(e.key==='Enter')auth();});
+  ['fc','fp','fa','fcat'].forEach(id=>document.getElementById(id).addEventListener('change',applyF));
+  document.getElementById('freset').addEventListener('click',resetF);
+  document.querySelectorAll('.tab[data-tab]').forEach(btn=>
+    btn.addEventListener('click',()=>showTab(btn.dataset.tab)));
+});
+
+const DATA=[{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":3.5,"scoreLabel":"Developing (3)","currentState":"1. Dependency audits and updates performed periodically\n2. Environment-specific configurations handled via CI/CD pipelines\n3. Azure Pipelines used for front-end deployments with automation\n4. Basic lockfiles used for dependency management\n5. Regular security reviews and dependency scans performed","actions":"1. Implement automated daily dependency scans for vulnerabilities\n2. Introduce automated environment configuration validation in CI pipeline\n3. Configure Azure Pipelines to automate rollback procedures on deployment failures\n4. Enforce strict semantic versioning for all dependencies\n5. Integrate static code analysis tools into CI pipeline for security vulnerabilities"},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":2.5,"scoreLabel":"Basic (2)","currentState":"1. Basic notes or wiki for documentation\n2. Figma UI used for design documentation\n3. Swagger or Postman used for API documentation\n4. No standardized workflow documentation\n5. Score of 2/5 and 3/5 for documentation practices","actions":"1. Implement Confluence for centralized documentation\n2. Integrate Figma with Storybook for component documentation\n3. Standardize API documentation using OpenAPI specification\n4. Create workflow documentation templates in Markdown\n5. Develop a documentation style guide for cross-team collaboration"},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Quality Engineering & Testing","score":3.5,"scoreLabel":"Developing (3)","currentState":"1. Minimal unit tests\n2. Bundle optimization via build tools\n3. Accessibility audits during QA\n4. Manual end-to-end testing\n5. Core Web Vitals monitoring","actions":"1. Implement automated component testing for critical front-end functionality\n2. Enforce performance budgets with automated monitoring and alerts\n3. Integrate automated accessibility checks into CI pipeline for faster feedback\n4. Develop automated end-to-end tests for high-risk front-end workflows\n5. Set up automated alerts for Core Web Vitals degradation and prioritize optimization"},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":3.62,"scoreLabel":"Developing (3)","currentState":"1. Modular front-end architecture with clear separation between admin and public modules\n2. Reusable components and design patterns followed for UI codebase modularity\n3. Metrics-based performance optimization using Lighthouse and bundle analysis\n4. Occasional API mocks and sync meetings for frontend-backend collaboration\n5. Shared schema definitions and contract validation for frontend-backend consistency","actions":"1. Introduce automated module dependency analysis to detect potential circular dependencies\n2. Establish a centralized component catalog with automated usage tracking and validation\n3. Integrate performance metrics into CI pipeline to automate optimization feedback\n4. Introduce automated contract testing between backend and frontend services\n5. Implement automated schema validation in CI pipeline to detect breaking changes"},{"client":"Redefine","project":"Corporate & Retail Portal","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":3.17,"scoreLabel":"Developing (3)","currentState":"1. Informal peer checks for code reviews\n2. Structured documentation for onboarding\n3. Figma integration for design-to-development handoffs\n4. Standardized formatting and naming conventions\n5. Regular meetings for cross-team knowledge sharing","actions":"1. Implement formal code review process with clear guidelines\n2. Develop comprehensive onboarding checklist with timelines\n3. Establish clear design file organization and access controls in Figma\n4. Automate linting and formatting checks in the development pipeline\n5. Schedule quarterly workshops for in-depth knowledge sharing across teams"},{"client":"Discovery","project":"Discovery","area":"Backend","category":"DevOps: CI/CD & Security","score":3.33,"scoreLabel":"Developing (3)","currentState":"1. Automated CI/CD pipelines in use\n2. Staging and pre-prod environments used\n3. Rollback strategy in place\n4. Security not maintained by development team\n5. Vulnerabilities fixed only after incidents","actions":"1. Implement automated security vulnerability scanning in CI/CD pipelines\n2. Introduce automated deployment validation in staging environments\n3. Develop automated rollback testing and validation\n4. Assign security ownership and responsibilities to development team members\n5. Introduce regular automated vulnerability scanning and remediation"},{"client":"Discovery","project":"Discovery","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":3.0,"scoreLabel":"Developing (3)","currentState":"1. Basic API documentation\n2. Partial API coverage\n3. API docs shared between teams\n4. Postman collections used for API syncing\n5. Some API docs available for frontend/mobile teams","actions":"1. Implement automated API documentation generation\n2. Develop a plan to achieve 100% API documentation coverage\n3. Establish a centralized API documentation repository\n4. Introduce OpenAPI specs for improved API definition and sharing\n5. Develop a regular API documentation review and update process with frontend/mobile teams"},{"client":"Discovery","project":"Discovery","area":"Backend","category":"Quality Engineering & Testing","score":2.0,"scoreLabel":"Basic (2)","currentState":"1. Only unit tests for critical features exist\n2. No contract testing is performed\n3. No load testing is conducted\n4. Testing is limited to unit tests\n5. Unit tests coverage is incomplete","actions":"1. Introduce automated integration testing for critical features\n2. Implement automated contract testing between backend services\n3. Design and execute load testing for high-traffic backend endpoints\n4. Develop a comprehensive testing strategy including unit, integration, contract, and load testing\n5. Increase unit test coverage to at least 80% of critical features"},{"client":"Discovery","project":"Discovery","area":"Backend","category":"Software Architecture & Backend Engineering","score":3.25,"scoreLabel":"Developing (3)","currentState":"1. Well-structured repository with frameworks and package manager\n2. Semantic versioning + deprecation strategy in place\n3. Regular PR reviews with some technical debt logged\n4. Manual performance and scalability checks\n5. No automated backend code review process beyond PR reviews","actions":"1. Introduce automated dependency updates and security audits\n2. Automate version compatibility checks in CI pipeline\n3. Implement a technical debt prioritization and resolution process\n4. Set up automated monitoring and alerting for latency and resource usage\n5. Introduce automated code analysis and linting tools for backend code"},{"client":"Discovery","project":"Discovery","area":"Backend","category":"Team Structure & Ways of Working","score":3.4,"scoreLabel":"Developing (3)","currentState":"1. Clear ownership per service/domain\n2. Basic ownership documented but not enforced\n3. Regular training and internal wikis\n4. Minor improvements adopted ad-hoc\n5. Clear onboarding and cross-team knowledge sharing processes","actions":"1. Document and enforce ownership boundaries in team wiki\n2. Establish clear escalation procedures for ownership disputes\n3. Schedule quarterly tech talks on latest backend technologies\n4. Introduce monthly retrospectives to identify and prioritize workflow improvements\n5. Develop a buddy system for new team members to facilitate knowledge sharing"},{"client":"Discovery","project":"Discovery","area":"Mobile Dev","category":"DevOps: CI/CD & Security","score":4.33,"scoreLabel":"Proficient (4)","currentState":"1. Full CI/CD pipeline with automated builds and testing\n2. Regular dependency scanning in place\n3. Automated build, test, deploy pipelines used by developers\n4. Code merged via PRs with alpha builds generated automatically\n5. Releases promoted to beta or production after validation","actions":"1. Integrate automated security vulnerability scanning in CI pipeline\n2. Implement automated dependency updates in CI pipeline\n3. Develop a comprehensive pipeline documentation for onboarding new team members\n4. Enforce code review checks in PRs to ensure secure coding practices\n5. Introduce automated rollback mechanisms in production deployments"},{"client":"Discovery","project":"Discovery","area":"Mobile Dev","category":"Documentation & Cross-Team Collaboration","score":5.0,"scoreLabel":"Exemplary (5)","currentState":"1. Well-maintained docs in place\n2. API contracts are used\n3. Reusable design systems are utilized\n4. Peer reviews are not explicitly mentioned as used\n5. No mention of cross-functional collaboration tools beyond design systems","actions":"1. Implement automated doc validation checks\n2. Introduce automated contract testing between services\n3. Develop a design system governance model\n4. Introduce mandatory peer review for design and flow changes\n5. Pilot a collaboration platform for cross-team design and flow discussions"},{"client":"Discovery","project":"Discovery","area":"Mobile Dev","category":"Quality Engineering & Testing","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. Crash reporting and profiling tools used\n2. Automated UI/device tests included in CI\n3. Golden test cases, widget tests, and BLoC test cases written\n4. Thorough developer testing before QA\n5. Regular alignment with architect and team for release quality","actions":"1. Integrate crash reporting data into CI pipeline for automated failure analysis\n2. Expand automated testing to cover 100% of critical user journeys\n3. Implement test case review and rotation process to ensure coverage of changing requirements\n4. Establish clear testing criteria and checklists for developers to follow\n5. Schedule recurring quality gates with clear, measurable criteria for release readiness"},{"client":"Discovery","project":"Discovery","area":"Mobile Dev","category":"Software Architecture & Backend Engineering","score":3.5,"scoreLabel":"Developing (3)","currentState":"1. Fully modular repo with dependency injection and shared libraries\n2. Manual testing on older devices/OS versions\n3. Technical debt tracking during code reviews\n4. Use of Swagger/Postman collections for team coordination\n5. Code reviews and validation handled by specific individuals","actions":"1. Refine the current structure to achieve a complete clean architecture\n2. Implement automated testing for compatibility across OS versions and devices\n3. Establish a systematic technical debt resolution process with prioritization and scheduling\n4. Introduce automated contract testing between backend and mobile services\n5. Develop a more distributed and standardized code review process with clear criteria and checklists"},{"client":"Discovery","project":"Discovery","area":"Mobile Dev","category":"Team Structure & Ways of Working","score":3.6,"scoreLabel":"Developing (3)","currentState":"1. Team owns specific features/modules\n2. Regular guild sessions and wikis for knowledge sharing\n3. Strong agile practice with clear DoD and estimation\n4. Team attends internal/external trainings for mobile tech updates\n5. Adopted tools like LIGHT SPEED for workflow improvement","actions":"1. Define and document clear module ownership criteria\n2. Schedule quarterly guild session reviews to assess effectiveness\n3. Introduce agile metrics dashboard for data-driven retrospectives\n4. Allocate dedicated time for team members to attend external mobile tech conferences\n5. Conduct a retrospective on LIGHT SPEED adoption to identify areas for further improvement"},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"DevOps: CI/CD & Security","score":4.67,"scoreLabel":"Proficient (4)","currentState":"1. Full automation with blue-green/canary deployments\n2. Automated scans for compliance checks\n3. Proactive patching for vulnerabilities\n4. Automated CI/CD pipelines with rollback strategy\n5. Automated compliance checks in place","actions":"1. Implement automated deployment validation for canary releases\n2. Integrate scan results into CI/CD pipeline for automated gating\n3. Develop a vulnerability management dashboard for real-time tracking\n4. Implement automated rollback testing for pipeline validation\n5. Expand compliance checks to include data encryption and access controls"},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":5.0,"scoreLabel":"Exemplary (5)","currentState":"1. OpenAPI/Swagger used for API documentation\n2. System diagrams used for system design documentation\n3. Well-maintained knowledge base in place\n4. Formal API-first approach used for cross-team collaboration\n5. Automated contract testing used for backend and frontend sync","actions":"1. Integrate OpenAPI/Swagger with automated testing framework\n2. Establish a regular review process for system diagrams\n3. Implement a search functionality for the knowledge base\n4. Develop a playbook for API-first approach implementation\n5. Expand automated contract testing to include mobile services"},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Quality Engineering & Testing","score":3.0,"scoreLabel":"Developing (3)","currentState":"1. Limited unit test coverage\n2. Limited integration test coverage\n3. No contract testing\n4. No load testing\n5. No comprehensive testing strategy","actions":"1. Increase unit test coverage to 80% of backend codebase\n2. Implement automated integration testing for critical backend APIs\n3. Introduce automated contract testing between backend and frontend services\n4. Design and execute load testing for high-traffic backend endpoints\n5. Develop and document a comprehensive testing strategy across unit, integration, contract, and load testing"},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Software Architecture & Backend Engineering","score":4.25,"scoreLabel":"Proficient (4)","currentState":"1. Well-structured repository with frameworks and package manager\n2. Semantic versioning + deprecation strategy in place\n3. Systematic code reviews and technical debt tracking in backlog\n4. Continuous profiling and APM tools in use\n5. Automated scaling strategies in place","actions":"1. Introduce automated dependency updates and security audits\n2. Automate version compatibility checks in CI pipeline\n3. Implement automated code review tools for improved feedback\n4. Introduce real-time performance monitoring and alerting\n5. Implement predictive scaling based on traffic and load forecasts"},{"client":"Investec","project":"Investec CIB","area":"Backend","category":"Team Structure & Ways of Working","score":3.8,"scoreLabel":"Developing (3)","currentState":"1. Clear ownership per service/domain\n2. Structured onboarding docs and mentorship\n3. Structured backlog grooming and estimation\n4. Regular training and internal wikis\n5. Some team-wide adoption of a new tool","actions":"1. Document and publish service/domain ownership maps\n2. Develop a buddy system for new joiners\n3. Introduce regular retrospective meetings to review estimation accuracy\n4. Create a quarterly training plan aligned with team skills gap analysis\n5. Conduct a tool adoption survey to identify areas for improved tooling"},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":3.75,"scoreLabel":"Developing (3)","currentState":"1. Basic lockfiles used for dependency management\n2. Environment-specific configurations handled via CI/CD pipelines\n3. Automated CI/CD pipelines with staging previews in place\n4. Regular security reviews and dependency scans conducted\n5. CSRF protection and XSS prevention measures implemented","actions":"1. Implement automated dependency updates and conflict resolution\n2. Introduce automated environment configuration validation\n3. Implement automated canary releases for production deployments\n4. Introduce automated security compliance reporting and auditing\n5. Implement Content Security Policy (CSP) for additional security"},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":3.0,"scoreLabel":"Developing (3)","currentState":"1. Partial Storybook coverage\n2. Comprehensive Markdown documentation\n3. OpenAPI Specifications generated\n4. Confluence integration with multiple references\n5. API Endpoint Documentation available","actions":"1. Implement Storybook for all UI components\n2. Automate Markdown documentation validation in CI pipeline\n3. Integrate OpenAPI Specifications with automated testing\n4. Establish a single source of truth for documentation in Confluence\n5. Automate API endpoint documentation updates with code changes"},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Quality Engineering & Testing","score":3.33,"scoreLabel":"Developing (3)","currentState":"1. Jest for unit testing available\n2. Protractor for E2E testing not in practice\n3. Performance budgets in place\n4. ARIA labels and semantic HTML implemented\n5. Lazy loading implemented for front-end performance","actions":"1. Increase Jest test coverage to 80%\n2. Implement Protractor for E2E testing of critical user journeys\n3. Enforce performance budgets in CI pipeline\n4. Conduct regular accessibility audits using axe-core\n5. Monitor and optimize bundle size using webpack-bundle-analyzer"},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":4.5,"scoreLabel":"Proficient (4)","currentState":"1. Scalable architecture with atomic design and feature-based folders\n2. Component libraries with enforced guidelines\n3. Metrics-based optimization using Lighthouse and bundle analysis\n4. Defined API contracts through Swagger specifications\n5. NX Monorepo Architecture for scalability","actions":"1. Implement automated code analysis for folder hierarchy consistency\n2. Introduce automated component library usage tracking and reporting\n3. Automate performance optimization metric tracking and alerting\n4. Introduce automated contract testing between backend and frontend services\n5. Implement automated dependency management and versioning for monorepo"},{"client":"Investec","project":"Investec CIB","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. Automated linting in place\n2. Peer reviews for all pull requests\n3. Regular learning sessions and design critiques\n4. Shared wikis for knowledge transfer\n5. ESLint and Prettier adopted for front-end workflow","actions":"1. Integrate linting with CI pipeline for automated code review\n2. Implement a mandatory code review checklist for pull requests\n3. Schedule quarterly cross-team workshops for knowledge sharing\n4. Create a centralized wiki for UI/UX team standards and best practices\n5. Configure ESLint to automatically fix code formatting issues on commit"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"DevOps: CI/CD & Security","score":4.33,"scoreLabel":"Proficient (4)","currentState":"1. Automated CI/CD pipelines in use\n2. Staging and pre-prod environments used\n3. Automated scans for compliance checks\n4. Proactive patching for vulnerabilities\n5. Rollback strategy in place","actions":"1. Implement pipeline metrics for deployment frequency and lead time\n2. Configure automated canary releases in staging environment\n3. Integrate vulnerability scan results into CI/CD pipeline\n4. Schedule regular dependency updates in CI/CD pipeline\n5. Automate rollback testing and validation in CI/CD pipeline"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. OpenAPI/Swagger used for API documentation\n2. System diagrams used for system design documentation\n3. Well-maintained knowledge base in place\n4. API documentation shared with frontend/mobile teams\n5. Postman collections used for API collaboration","actions":"1. Integrate OpenAPI/Swagger with automated testing framework\n2. Establish a regular review process for system diagrams\n3. Implement a search functionality for the knowledge base\n4. Establish a bi-weekly sync meeting between backend and frontend/mobile teams\n5. Introduce automated contract testing between backend and frontend services using Postman"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Quality Engineering & Testing","score":5.0,"scoreLabel":"Exemplary (5)","currentState":"1. Full testing strategy in place\n2. Unit tests implemented\n3. Integration tests implemented\n4. Contract tests implemented\n5. Load tests implemented with coverage reports","actions":"1. Introduce automated test reporting dashboard\n2. Increase unit test coverage to 95%\n3. Add integration tests for error handling scenarios\n4. Expand contract tests to cover all API endpoints\n5. Integrate load test results into CI/CD pipeline"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Software Architecture & Backend Engineering","score":4.75,"scoreLabel":"Proficient (4)","currentState":"1. Clean/hexagonal architecture used\n2. Formal API versioning policy in place\n3. Systematic code reviews conducted\n4. Continuous profiling and APM tools used\n5. Technical debt tracked in backlog","actions":"1. Introduce automated architecture compliance checks in code reviews\n2. Implement automated version deprecation notifications for clients\n3. Introduce pair programming for complex backend code changes\n4. Set up automated alerts for performance regression detection\n5. Introduce quarterly technical debt review and prioritization sessions"},{"client":"Investec","project":"Investec CXT","area":"Backend","category":"Team Structure & Ways of Working","score":4.6,"scoreLabel":"Proficient (4)","currentState":"1. Well-defined ownership and domain-driven accountability\n2. Some documentation and occasional knowledge sharing\n3. Mature agile/SAFe process with prioritization and predictability\n4. Formal guilds, conferences, and innovation time for staying updated\n5. Github copilot used for structuring projects and creating test cases","actions":"1. Establish a centralized dashboard to track ownership and accountability\n2. Create a comprehensive onboarding guide and schedule regular cross-team knowledge sharing sessions\n3. Implement automated reporting to track progress and predictability metrics\n4. Host quarterly internal conferences to share knowledge and best practices\n5. Develop a custom Github copilot plugin to streamline Scrum tasks and backlog creation"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"DevOps: CI/CD & Security","score":5.0,"scoreLabel":"Exemplary (5)","currentState":"1. Full CI/CD with testing, signing, release notes\n2. Automated scanning + proactive vulnerability management\n3. Full CI/CD with rollout strategies & dashboards\n4. CI/CD tools and processes in place\n5. Proactive vulnerability management","actions":"1. Implement automated release note generation based on commit history\n2. Integrate vulnerability management with CI/CD pipeline to block deployments with high-severity issues\n3. Develop customizable dashboard for real-time deployment monitoring and metrics\n4. Conduct regular team-wide training sessions on CI/CD tooling and best practices\n5. Schedule quarterly external security audits to identify blind spots in vulnerability management"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Documentation & Cross-Team Collaboration","score":5.0,"scoreLabel":"Exemplary (5)","currentState":"1. Well-maintained documentation in place\n2. API contracts are used for collaboration\n3. Reusable design systems are utilized\n4. Peer reviews are not explicitly mentioned as used\n5. Design and flow documentation is well-maintained","actions":"1. Implement automated documentation validation checks\n2. Introduce automated contract testing between services\n3. Establish a design system governance process\n4. Introduce mandatory peer review for design and flow changes\n5. Automate design and flow documentation updates"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Quality Engineering & Testing","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. Continuous monitoring with dashboards & alerts in place\n2. Unit tests are used for quality assurance\n3. Integration tests are used for quality assurance\n4. Limited test coverage across devices and platforms\n5. No comprehensive testing strategy across devices and platforms","actions":"1. Implement automated alert escalation for critical performance issues\n2. Introduce property-based testing for unit tests\n3. Increase integration test coverage to 80% of critical workflows\n4. Expand test suite to include at least 3 additional device and platform combinations\n5. Develop and implement a device and platform matrix for testing"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Software Architecture & Backend Engineering","score":4.5,"scoreLabel":"Proficient (4)","currentState":"1. Fully modular repo in place\n2. Backward compatibility libraries used\n3. Systematic PR strategy for technical debt\n4. Contract-first development approach used\n5. Automated schema validation in place","actions":"1. Implement automated module dependency analysis\n2. Introduce automated testing for OS version compatibility\n3. Develop a technical debt prioritization framework\n4. Introduce automated contract testing between backend and frontend services\n5. Expand automated schema validation to include data validation"},{"client":"Investec","project":"Investec CXT","area":"Mobile Dev","category":"Team Structure & Ways of Working","score":4.8,"scoreLabel":"Proficient (4)","currentState":"1. End-to-end ownership across multiple apps/platforms\n2. Regular guild sessions for knowledge sharing\n3. Strong agile practice with clear DoD\n4. Structured knowledge sharing for mobile technology trends\n5. Scaled new practice across multiple teams/org","actions":"1. Define clear escalation procedures for cross-app issues\n2. Establish a guild session feedback mechanism to improve content relevance\n3. Introduce agile maturity assessments to identify areas for improvement\n4. Create a community of practice for mobile tech to facilitate cross-team learning\n5. Develop a playbook for scaling practices to ensure consistency and efficiency"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":4.75,"scoreLabel":"Proficient (4)","currentState":"1. Automated audits for dependencies in place\n2. Environment-specific configurations isolated\n3. Automated CI/CD pipelines for front-end deployments used\n4. Proactive secure coding practices in place\n5. Automated vulnerability scanning for dependencies used","actions":"1. Integrate automated license compliance checks\n2. Implement automated environment configuration validation\n3. Introduce automated canary releases for production deployments\n4. Implement regular security awareness training for developers\n5. Integrate dependency risk assessment into CI/CD pipeline"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. Full Storybook documentation in place\n2. Markdown documentation used for UI components\n3. API documentation maintained in Storybook\n4. Workflows documented using markdown\n5. No Confluence documentation used","actions":"1. Integrate Storybook with automated testing framework\n2. Standardize markdown template for all UI components\n3. Implement automated API documentation updates\n4. Create visual workflow diagrams to supplement markdown documentation\n5. Explore Confluence integration for cross-team knowledge sharing"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Quality Engineering & Testing","score":3.0,"scoreLabel":"Developing (3)","currentState":"1. Component and integration tests in place\n2. Bundle optimization via build tools\n3. ARIA labels and semantic HTML in place\n4. No end-to-end testing mentioned\n5. No mention of Core Web Vitals monitoring","actions":"1. Introduce unit tests for critical front-end components\n2. Implement caching mechanisms for frequently accessed resources\n3. Conduct regular accessibility audits using automated tools\n4. Introduce end-to-end testing for critical user journeys\n5. Set up monitoring and alerting for Core Web Vitals metrics"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":4.25,"scoreLabel":"Proficient (4)","currentState":"1. Scalable front-end architecture in place\n2. Component libraries with enforced guidelines exist\n3. Metrics-based optimization is used\n4. Occasional API mocks are used\n5. Sync meetings with backend teams occur","actions":"1. Introduce automated testing for state isolation\n2. Establish a regular review process for design system updates\n3. Implement automated bundle analysis in CI pipeline\n4. Introduce automated contract testing between backend and frontend services\n5. Schedule regular joint architecture reviews with backend teams"},{"client":"Investec","project":"Investec CXT","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. Automated linting in place\n2. PR review templates used\n3. Some documentation available for onboarding\n4. KT sessions held for cross-team knowledge sharing\n5. Innovation culture with regular evaluation of new tools","actions":"1. Integrate automated formatting tools to complement existing linting\n2. Develop and implement a comprehensive code review checklist\n3. Create a centralized and up-to-date knowledge base for UI/UX team\n4. Schedule regular cross-team workshops and training sessions\n5. Establish a quarterly review process to assess and implement new tools and practices"},{"client":"Investec","project":"Investec PB","area":"Backend","category":"DevOps: CI/CD & Security","score":4.33,"scoreLabel":"Proficient (4)","currentState":"1. Automated CI/CD pipelines in use\n2. Staging and pre-prod environments used\n3. Regular security scans performed\n4. Secure coding guidelines in place\n5. Advanced pipelines with automated testing used","actions":"1. Implement pipeline metrics for deployment frequency and lead time\n2. Introduce automated rollback capabilities in staging environments\n3. Schedule quarterly security audit and compliance reviews\n4. Conduct bi-annual secure coding training for developers\n5. Integrate automated testing for deployment strategies in CI/CD pipelines"},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. API specs are versioned\n2. Design docs are maintained\n3. API contracts are used for sync\n4. Regular syncs between teams occur\n5. API mocks are used for frontend/backend sync","actions":"1. Introduce automated API spec validation\n2. Establish a design doc review process\n3. Implement automated contract testing between backend and frontend services\n4. Schedule recurring inter-team meetings for API discussion\n5. Develop a mock API management process for easier maintenance"},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Quality Engineering & Testing","score":3.0,"scoreLabel":"Developing (3)","currentState":"1. Unit tests are implemented\n2. Integration tests are implemented\n3. Limited test coverage\n4. No contract testing\n5. No load testing","actions":"1. Increase unit test coverage to 80% of backend codebase\n2. Introduce automated integration testing for critical backend workflows\n3. Develop a test coverage strategy to identify and prioritize untested areas\n4. Introduce automated contract testing between backend and frontend services\n5. Design and implement load testing for high-traffic backend endpoints"},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Software Architecture & Backend Engineering","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. Well-structured repository organization\n2. Formal API versioning policy with multiple versions supported\n3. Regular PR reviews for backend code\n4. Load testing and monitoring dashboards in place\n5. Technical debt logged but not comprehensively managed","actions":"1. Implement automated repository sanity checks\n2. Introduce automated version deprecation warnings\n3. Mandate code review checklists for technical debt identification\n4. Set up automated alerts for performance regression detection\n5. Schedule quarterly technical debt review and prioritization sessions"},{"client":"Investec","project":"Investec PB","area":"Backend","category":"Team Structure & Ways of Working","score":3.4,"scoreLabel":"Developing (3)","currentState":"1. Clear ownership per service/domain\n2. Structured onboarding docs and mentorship\n3. Structured backlog grooming and estimation\n4. Occasional training sessions\n5. Minor improvements adopted ad-hoc","actions":"1. Document and publish ownership matrix to all stakeholders\n2. Establish a buddy system for new joiners\n3. Introduce regular retrospective sessions to review estimation accuracy\n4. Schedule quarterly training sessions on latest backend technologies\n5. Establish a quarterly review process to identify and prioritize workflow improvements"},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"DevOps: CI/CD & Security","score":4.33,"scoreLabel":"Proficient (4)","currentState":"1. Automated CI/CD pipelines in use\n2. Staging and pre-prod environments used\n3. Regular security scans performed\n4. Secure coding guidelines in place\n5. Advanced pipelines with automated testing used","actions":"1. Implement pipeline metrics for deployment frequency and lead time\n2. Introduce automated environment provisioning and teardown\n3. Integrate scan results into CI pipeline for automated vulnerability reporting\n4. Develop a secure coding checklist for code review\n5. Expand automated testing to include performance and load testing"},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.5,"scoreLabel":"Proficient (4)","currentState":"1. OpenAPI/Swagger used for API documentation\n2. System diagrams used for system design documentation\n3. Well-maintained knowledge base in place\n4. Regular sync with API contracts and mocks between teams\n5. API mocks used for cross-team collaboration","actions":"1. Integrate OpenAPI/Swagger with automated testing framework\n2. Establish a regular review process for system diagrams\n3. Implement a search functionality for the knowledge base\n4. Introduce automated contract testing between backend and frontend services\n5. Develop a centralized repository for API mock management"},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Quality Engineering & Testing","score":3.0,"scoreLabel":"Developing (3)","currentState":"1. Limited unit test coverage\n2. Limited integration test coverage\n3. No contract testing\n4. No load testing\n5. No comprehensive testing strategy","actions":"1. Increase unit test coverage to 80% of backend codebase\n2. Develop automated integration tests for critical backend APIs\n3. Introduce automated contract testing between backend and frontend services\n4. Implement load testing for high-traffic backend endpoints\n5. Develop and document a comprehensive testing strategy across unit, integration, contract, and load testing"},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Software Architecture & Backend Engineering","score":3.0,"scoreLabel":"Developing (3)","currentState":"1. Well-structured repository with frameworks and package manager\n2. Semantic versioning + deprecation strategy in place\n3. Occasional code reviews and reactive technical debt handling\n4. Manual performance and scalability checks\n5. No automated contract testing between backend and frontend services","actions":"1. Introduce automated dependency updates and security audits\n2. Automate version compatibility checks in CI pipeline\n3. Schedule regular code reviews and implement proactive technical debt management\n4. Implement automated monitoring and alerting for latency, throughput, and resource usage\n5. Introduce automated contract testing between backend and frontend services"},{"client":"Investec","project":"Investec W&I","area":"Backend","category":"Team Structure & Ways of Working","score":2.6,"scoreLabel":"Basic (2)","currentState":"1. Clear ownership per service/domain\n2. Informal shadowing only for onboarding\n3. Basic agile ceremonies in place\n4. Developers self-learn reactively\n5. Minor improvements adopted ad-hoc","actions":"1. Document and publish ownership matrix for all services and domains\n2. Develop a formal onboarding program with structured training and mentoring\n3. Introduce regular agile ceremony retrospectives to identify areas for improvement\n4. Establish a quarterly budget for dedicated training and conference attendance\n5. Schedule quarterly review and prioritization of new tools and practices for adoption"},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"DevOps: CI/CD & Security","score":2.0,"scoreLabel":"Basic (2)","currentState":"1. Manual builds and deployments\n2. Regular security scans and secure coding guidelines\n3. No CI/CD tools used\n4. Manual releases\n5. No automated deployment pipelines","actions":"1. Implement automated build and deployment scripts\n2. Integrate security scan results into CI/CD pipeline\n3. Adopt a CI/CD tool such as Jenkins or GitLab CI\n4. Automate release processes using CI/CD pipelines\n5. Create staging environments with automated deployment pipelines"},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. API specs are versioned\n2. Design docs are maintained\n3. API contracts are used for sync\n4. Regular syncs occur between teams\n5. API mocks are used for frontend/backend sync","actions":"1. Introduce automated API spec validation\n2. Establish a design doc review process\n3. Implement automated contract testing between backend and frontend services\n4. Schedule recurring cross-team design review meetings\n5. Develop a mock API management and sharing process"},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Quality Engineering & Testing","score":1.0,"scoreLabel":"Foundational (1)","currentState":"1. Only manual testing\n2. No integration testing\n3. No contract testing\n4. No load testing\n5. No automated testing","actions":"1. Introduce automated unit testing for backend services\n2. Implement automated integration testing for backend APIs\n3. Introduce automated contract testing between backend and frontend services\n4. Implement automated load testing for backend services to handle high traffic\n5. Set up a CI/CD pipeline with automated testing for backend services"},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Software Architecture & Backend Engineering","score":3.25,"scoreLabel":"Developing (3)","currentState":"1. Some modularity with MVC/DDD concepts\n2. Semantic versioning + deprecation strategy in place\n3. Regular PR reviews occur\n4. Technical debt is partially logged\n5. Occasional profiling with basic tools occurs","actions":"1. Introduce domain-driven design workshops for improved architecture\n2. Automate version compatibility checks in CI pipeline\n3. Implement mandatory code review checklists for backend code\n4. Schedule quarterly technical debt review and prioritization sessions\n5. Integrate advanced performance monitoring tools into the development environment"},{"client":"eCommerce","project":"eCommerce","area":"Backend","category":"Team Structure & Ways of Working","score":2.8,"scoreLabel":"Basic (2)","currentState":"1. Clear ownership per service/domain\n2. Structured onboarding docs and mentorship\n3. Basic agile ceremonies in place\n4. Developers self-learn reactively\n5. No new tools or practices adopted","actions":"1. Document and publish service ownership map to all teams\n2. Establish a buddy system for new joiners\n3. Introduce regular agile ceremony retrospectives\n4. Schedule quarterly team workshops on latest backend technologies\n5. Conduct a tools and practices survey across similar teams to identify potential adoption opportunities"},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"DevOps: CI/CD & Security","score":2.5,"scoreLabel":"Basic (2)","currentState":"1. Basic lockfiles used\n2. Environment configs per build\n3. Manual builds & FTP upload\n4. Basic framework-level security\n5. No automated front-end deployment testing","actions":"1. Implement automated dependency updates and auditing\n2. Introduce environment-agnostic configuration management\n3. Migrate to automated CI/CD pipeline using Jenkins or GitLab CI\n4. Implement Content Security Policy (CSP) and regular security audits\n5. Introduce automated testing for front-end deployments using Selenium or Cypress"},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Documentation & Cross-Team Collaboration","score":2.0,"scoreLabel":"Basic (2)","currentState":"1. Basic notes or wiki for documentation\n2. Figma used for design evidence\n3. No standardized workflow documentation\n4. Limited cross-team collaboration tools\n5. No automated documentation updates","actions":"1. Migrate documentation to Confluence for better organization\n2. Integrate Figma with Storybook for seamless UI component documentation\n3. Create Markdown templates for workflow documentation\n4. Implement regular UIUXWeb team meetings with API and workflow teams\n5. Set up automated documentation builds using Storybook and Confluence APIs"},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Quality Engineering & Testing","score":2.0,"scoreLabel":"Basic (2)","currentState":"1. Minimal unit tests\n2. Some minification and compression\n3. Basic manual checks for accessibility\n4. No mention of E2E testing\n5. No performance metrics tracking","actions":"1. Implement component-level testing for critical UI components\n2. Configure automated bundle size analysis and optimization in CI pipeline\n3. Integrate automated accessibility audits using tools like Lighthouse or axe\n4. Develop and integrate end-to-end tests for critical user journeys\n5. Set up monitoring and alerting for Core Web Vitals and rendering speed"},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Software Architecture & Backend Engineering","score":4.0,"scoreLabel":"Proficient (4)","currentState":"1. MVC Framework used for front-end projects\n2. Component libraries with enforced guidelines in place\n3. Metrics-based optimization using Lighthouse and bundle analysis\n4. Occasional API mocks used for backend collaboration\n5. Prestashop CCC used for performance optimization","actions":"1. Introduce automated testing for MVC framework components\n2. Establish a centralized component library repository\n3. Implement automated Lighthouse audits in CI pipeline\n4. Introduce automated contract testing between backend and frontend services\n5. Configure Prestashop CCC to automate code compression and caching"},{"client":"eCommerce","project":"eCommerce","area":"UIUXWeb","category":"Team Structure & Ways of Working","score":2.67,"scoreLabel":"Basic (2)","currentState":"1. Informal peer checks for code reviews\n2. Structured onboarding docs available\n3. Inconsistent adoption of new tools and practices\n4. Minor improvements in front-end workflow\n5. Design and code walkthroughs for knowledge sharing","actions":"1. Implement automated linting and formatting checks\n2. Develop a mentorship program for new team members\n3. Establish a quarterly review process for tool and practice adoption\n4. Conduct a workflow assessment to identify areas for significant improvement\n5. Create a centralized knowledge base for UI/UX team information"},{"client":"FNZ","project":"Funds LOB","area":"Backend","category":"DevOps: CI/CD & Security","score":3.0,"scoreLabel":"Developing (3)","currentState":"• Some manual build pipelines\n• Vulnerability checking with latest NuGet packages\n• Variable automation across projects\n• Team familiarity with CI/CD pipelines\n• No security by design process","actions":"• Implement automated build pipelines using CI/CD tools\n• Integrate automated vulnerability scanning in CI/CD pipelines\n• Standardize CI/CD automation across all backend projects\n• Provide dedicated training on advanced CI/CD tool features\n• Develop and implement a security by design framework for backend systems"},{"client":"FNZ","project":"Funds LOB","area":"Backend","category":"Documentation & Cross-Team Collaboration","score":4.0,"scoreLabel":"Proficient (4)","currentState":"• Backend documentation is up-to-date\n• Cross-team meetings are held bi-weekly\n• API contract reviews are manual\n• Documentation feedback is collected quarterly\n• Backend API documentation is not easily accessible","actions":"• Introduce automated documentation generation for backend APIs\n• Establish a shared documentation portal for cross-team collaboration\n• Introduce automated contract testing between backend and frontend services\n• Implement a real-time documentation feedback mechanism for cross-team collaboration\n• Create a centralized API documentation hub with search functionality"},{"client":"FNZ","project":"Funds LOB","area":"Backend","category":"Quality Engineering & Testing","score":3.0,"scoreLabel":"Developing (3)","currentState":"• Manual testing is used\n• JMeter is used for load testing\n• Playwright is used for automation\n• No response recorded for testing strategy\n• Automation tools are used besides manual testing","actions":"• Introduce automated unit testing for backend services\n• Configure JMeter to run load tests in CI pipeline\n• Expand Playwright usage to cover integration testing\n• Document and communicate a comprehensive testing strategy\n• Increase automation coverage to reduce manual testing efforts"},{"client":"FNZ","project":"Funds LOB","area":"Backend","category":"Software Architecture & Backend Engineering","score":4.0,"scoreLabel":"Proficient (4)","currentState":"• Microservices architecture implemented\n• API documentation available\n• Load balancing used for traffic distribution\n• Error logging and monitoring in place\n• Backend services use relational database","actions":"• Introduce service discovery mechanism for backend services\n• Automate API documentation updates using code annotations\n• Implement automated scaling for backend services based on traffic\n• Introduce alerting system for critical errors and performance issues\n• Explore implementation of caching layer for frequent database queries"},{"client":"FNZ","project":"Funds LOB","area":"Backend","category":"Team Structure & Ways of Working","score":4.0,"scoreLabel":"Proficient (4)","currentState":"• KT sharing is scattered with documentation\n• SAFE with PI Planning is used for work planning\n• Sharepoint portal and WiKi links are used for updates\n• VS Code with Copilot is used for development\n• MS Teams channels are used for different projects","actions":"• Implement a centralized knowledge management platform\n• Conduct regular retrospectives to refine PI Planning process\n• Schedule quarterly tech forums for backend teams\n• Develop a Copilot usage guide and training for all team members\n• Establish a standardized naming convention for MS Teams channels"}];
+
+let F=[...DATA];
+
+// ── AUTH ──────────────────────────────────────────────────────
+function auth(){
+  if(document.getElementById('pwi').value==='exaze2025'){
+    document.getElementById('pw').style.display='none';
+    const a=document.getElementById('app');
+    a.style.display='flex';a.style.flexDirection='column';
+    init();
+  } else {
+    const e=document.getElementById('pwe');
+    e.textContent='Incorrect password.';
+    setTimeout(()=>e.textContent='',2500);
+  }
+}
+
+// ── HELPERS ───────────────────────────────────────────────────
+// rawAvg: true decimal average for accurate aggregation
+const rawAvg = a => a.length ? a.reduce((s,v)=>s+v,0)/a.length : 0;
+// floorAvg: floor for display — process maturity is an integer scale
+const floorAvg = a => Math.floor(rawAvg(a));
+const uniq     = a => [...new Set(a)].sort();
+
+// Two-colour scheme: orange = struggling (≤2), green = healthy (>2)
+const sc = v => Math.floor(v) > 2 ? '#10b981' : '#f59e0b';
+
+// Maturity definitions
+const MATURITY = [
+  {level:1,label:'Initial',
+   desc:'Processes are informal and inconsistent. Success depends on individual effort. Documentation, testing, and standards are limited or absent.'},
+  {level:2,label:'Developing',
+   desc:'Basic processes exist and are followed by some teams. Documentation, code reviews, testing, and planning occur but are not consistently applied.'},
+  {level:3,label:'Defined',
+   desc:'Standardised engineering practices are documented and adopted across teams. Roles, responsibilities, architecture guidelines, testing strategies, and delivery processes are well established.'},
+  {level:4,label:'Managed',
+   desc:'Engineering practices are measured using KPIs and metrics. Teams proactively manage quality, performance, security, technical debt, and delivery predictability using data.'},
+  {level:5,label:'Optimised',
+   desc:'Continuous improvement is embedded in the culture. Automation, innovation, AI-assisted development, observability, self-service platforms, and proactive optimisation drive engineering excellence.'},
+];
+
+function getMat(score){
+  const lvl=Math.max(1,Math.min(5,Math.floor(score)));
+  return MATURITY[lvl-1];
+}
+
+// Stars — coloured based on score (green >2, orange ≤2)
+function starsEl(score, cls=''){
+  const full=Math.max(0,Math.min(5,Math.floor(score)));
+  const empty=5-full;
+  const col=Math.floor(score)>2?'#10b981':'#f59e0b';
+  let s=`<span class="stars ${cls}">`;
+  for(let i=0;i<full;i++)  s+=`<span class="star on" style="color:${col};">★</span>`;
+  for(let i=0;i<empty;i++) s+=`<span class="star">★</span>`;
+  s+=`</span>`;
+  return s;
+}
+
+function lvlBadge(score){
+  const m=getMat(score);
+  const c=sc(score);
+  return `<span class="lvl-badge" style="color:${c};border-color:${c}40;background:${c}12;">${m.level} · ${m.label}</span>`;
+}
+
+// ── INIT ──────────────────────────────────────────────────────
+function init(){
+  const cl=uniq(DATA.map(r=>r.client));
+  const ar=uniq(DATA.map(r=>r.area));
+  const ca=uniq(DATA.map(r=>r.category));
+  cl.forEach(c=>document.getElementById('fc').innerHTML+=`<option>${c}</option>`);
+  ar.forEach(a=>document.getElementById('fa').innerHTML+=`<option>${a}</option>`);
+  ca.forEach(c=>document.getElementById('fcat').innerHTML+=`<option>${c}</option>`);
+  buildChips();renderAll();
+}
+
+function buildChips(){/* chips removed */}
+
+function applyF(){
+  const cl=document.getElementById('fc').value,pr=document.getElementById('fp').value,
+        ar=document.getElementById('fa').value,ca=document.getElementById('fcat').value;
+  F=DATA.filter(r=>(!cl||r.client===cl)&&(!pr||r.project===pr)&&(!ar||r.area===ar)&&(!ca||r.category===ca));
+  if(cl){
+    const fp=document.getElementById('fp');
+    fp.innerHTML='<option value="">All Projects</option>';
+    uniq(DATA.filter(r=>r.client===cl).map(r=>r.project)).forEach(p=>fp.innerHTML+=`<option>${p}</option>`);
+  }
+  renderAll();
+}
+
+function resetF(){
+  ['fc','fp','fa','fcat'].forEach(id=>{
+    const el=document.getElementById(id);el.value='';
+    if(id==='fp')el.innerHTML='<option value="">All Projects</option>';
+  });
+  F=[...DATA];renderAll();
+}
+
+function showTab(t){
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.getElementById(t).classList.add('on');
+}
+
+function renderAll(){renderOv();renderPr();}
+
+// ── OVERVIEW ──────────────────────────────────────────────────
+function renderOv(){
+  const d=F;
+  const total=floorAvg(d.map(r=>r.score));
+  const mat=getMat(total);
+  const col=sc(total);
+  const clients=uniq(d.map(r=>r.client));
+  const projs=uniq(d.map(r=>r.project));
+  const crit=projs.filter(p=>floorAvg(d.filter(r=>r.project===p).map(r=>r.score))<=2).length;
+  const excel=projs.filter(p=>floorAvg(d.filter(r=>r.project===p).map(r=>r.score))>=4).length;
+
+  // Sorted worst first
+  const clientAvgs=clients
+    .map(cl=>({cl,s:floorAvg(d.filter(r=>r.client===cl).map(r=>r.score))}))
+    .sort((a,b)=>a.s-b.s);
+
+  const areas=uniq(d.map(r=>r.area));
+  const areaAvgs=areas
+    .map(a=>({a,s:floorAvg(d.filter(r=>r.area===a).map(r=>r.score))}))
+    .sort((a,b)=>a.s-b.s);
+
+  const cats=uniq(d.map(r=>r.category));
+  const catAvgs=cats
+    .map(c=>({c,s:floorAvg(d.filter(r=>r.category===c).map(r=>r.score))}))
+    .sort((a,b)=>a.s-b.s);
+
+  // Maturity pips with fixed-position tooltip (escapes overflow:hidden parents)
+  const matPips=MATURITY.map(m=>{
+    const active=mat.level===m.level;
+    const c2=m.level>2?'#10b981':'#f59e0b';
+    const tipId=`mtip-${m.level}`;
+    return`<div class="mat-pip-wrap"
+        onmouseenter="showMatTip(event,'${tipId}')"
+        onmouseleave="hideMatTip('${tipId}')"
+        onmousemove="moveMatTip(event,'${tipId}')">
+      <div class="mat-pip"
+        style="background:${c2}${active?'28':'10'};border-color:${c2}${active?'':'40'};color:${c2};${active?'transform:scale(1.15);':''}">
+        ${m.level}
+      </div>
+      <div class="mat-pip-label" style="color:${active?c2:''};">${m.label}</div>
+      <div class="mat-tip" id="${tipId}"><strong style="color:${c2}">${m.level} — ${m.label}</strong>${m.desc}</div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('ov').innerHTML=`
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-left">
+    <div class="hero-stars">${starsEl(total,'stars-xl')}</div>
+    <div class="hero-lvl">Level ${mat.level} of 5</div>
+  </div>
+  <div class="hero-mid">
+    <div class="hero-lbl">Overall Engineering Health</div>
+    <div class="hero-title" style="color:${col}">${mat.label}</div>
+    <div class="hero-desc">${mat.desc}</div>
+    <div class="hero-meta">
+      <div class="hm"><strong>${clients.length}</strong> Clients</div>
+      <div class="hm"><strong>${projs.length}</strong> Projects</div>
+      <div class="hm"><strong style="color:#f59e0b">${crit}</strong> Need Attention</div>
+      <div class="hm"><strong style="color:#10b981">${excel}</strong> Excellent</div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;text-align:right;">Maturity Scale</div>
+    <div class="mat-legend">${matPips}</div>
+  </div>
+</div>
+
+<!-- KPI ROW -->
+<div class="krow">
+  <div class="kpi k-red">
+    <div class="kpi-lbl">Need Attention</div>
+    <div class="kpi-val" style="color:#f59e0b">${crit}</div>
+    <div class="kpi-sub">Projects at Level 1 or 2</div>
+  </div>
+  <div class="kpi k-green">
+    <div class="kpi-lbl">Excellent</div>
+    <div class="kpi-val" style="color:#10b981">${excel}</div>
+    <div class="kpi-sub">Projects at Level 4 or 5</div>
+  </div>
+</div>
+
+<!-- CLIENT + AREA -->
+<div class="two">
+  <div class="card">
+    <div class="sec-title">Client Health</div>
+    ${clientAvgs.map(({cl,s})=>`
+      <div class="srow" style="cursor:pointer;" onclick="goToClient(this)" data-client-name="${cl.replace(/"/g,'&quot;')}">
+        <div class="srow-label">${cl}</div>
+        ${starsEl(s,'stars-sm')}
+        <span style="font-size:10px;color:${sc(s)};font-weight:700;min-width:60px;text-align:right;">${getMat(s).label}</span>
+      </div>`).join('')}
+  </div>
+  <div class="card">
+    <div class="sec-title">Area Health</div>
+    ${areaAvgs.map(({a,s})=>`
+      <div class="srow">
+        <div class="srow-label"><span class="badge b-purple">${a}</span></div>
+        ${starsEl(s,'stars-sm')}
+        <span style="font-size:10px;color:${sc(s)};font-weight:700;min-width:60px;text-align:right;">${getMat(s).label}</span>
+      </div>`).join('')}
+  </div>
+</div>
+
+<!-- CATEGORY SCORES -->
+<div class="card" style="margin-bottom:4px;">
+  <div class="sec-title">Category Health</div>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:4px 40px;">
+  ${catAvgs.map(({c,s})=>`
+    <div class="srow">
+      <div class="srow-label muted">${c}</div>
+      ${starsEl(s,'stars-sm')}
+      <span style="font-size:10px;color:${sc(s)};font-weight:700;min-width:60px;text-align:right;">${getMat(s).label}</span>
+    </div>`).join('')}
+  </div>
+</div>`;
+}
+
+// ── PROJECT DRILL-DOWN ────────────────────────────────────────
+function renderPr(){
+  const d=F;
+  const clientList=uniq(d.map(r=>r.client));
+
+  // Sort clients worst first
+  const byClient=clientList
+    .map(cl=>{
+      const crows=d.filter(r=>r.client===cl);
+      const cavg=floorAvg(crows.map(r=>r.score));
+      // Sort projects worst first
+      const projs=uniq(crows.map(r=>r.project))
+        .map(p=>{const rows=crows.filter(r=>r.project===p);return{p,sc:floorAvg(rows.map(r=>r.score)),rows};})
+        .sort((a,b)=>a.sc-b.sc);
+      return{cl,projs,cavg};
+    })
+    .sort((a,b)=>a.cavg-b.cavg);
+
+  let html='';
+  let idx=0;
+
+  byClient.forEach(({cl,projs,cavg})=>{
+    let tbody='';
+    projs.forEach(({p,sc:psc,rows})=>{
+      const did=`det-${idx++}`;
+      const pmat=getMat(psc);
+      const pcol=sc(psc);
+
+      // Group by Area (sorted worst first)
+      const areas=uniq(rows.map(r=>r.area));
+      const areasSorted=[...areas]
+        .map(a=>({a,s:floorAvg(rows.filter(r=>r.area===a).map(r=>r.score))}))
+        .sort((a,b)=>a.s-b.s)
+        .map(x=>x.a);
+
+      const detHtml=areasSorted.map(area=>{
+        const aRows=rows.filter(r=>r.area===area);
+        const aScore=floorAvg(aRows.map(r=>r.score));
+        const acol=sc(aScore);
+
+        // Sort categories worst first
+        const catsSorted=[...aRows].sort((a,b)=>a.score-b.score);
+
+        const catCards=catsSorted.map(row=>{
+          const rcol=sc(row.score);
+          const stateLines=(row.currentState||'').split('\n').filter(Boolean);
+          const actionLines=(row.actions||'').split('\n').filter(Boolean);
+          return`<div class="cat-card" style="border-left-color:${rcol};">
+            <div class="cat-card-head">
+              <div style="font-size:13px;font-weight:700;">${row.category}</div>
+              <div style="display:flex;align-items:center;gap:8px;">
+                ${starsEl(row.score,'stars-sm')}
+                ${lvlBadge(row.score)}
+              </div>
+            </div>
+            <div class="cat-card-body">
+              <div class="cat-col state">
+                <div class="cat-col-hdr">Current State</div>
+                <div class="cat-col-body">
+                  ${stateLines.length
+                    ? stateLines.map(l=>`<div class="line">${l.trim()}</div>`).join('')
+                    : '<span style="opacity:.4;font-size:11px;">—</span>'}
+                </div>
+              </div>
+              <div class="cat-col actions">
+                <div class="cat-col-hdr">Action Points</div>
+                <div class="cat-col-body">
+                  ${actionLines.length
+                    ? actionLines.map(a=>`<div class="line">${a.trim()}</div>`).join('')
+                    : '<span style="opacity:.4;font-size:11px;">—</span>'}
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }).join('');
+
+        return`<div class="area-block">
+          <div class="area-hdr">
+            <span class="badge b-purple">${area}</span>
+            ${starsEl(aScore,'stars-sm')}
+            ${lvlBadge(aScore)}
+          </div>
+          <div class="cat-grid">${catCards}</div>
+        </div>`;
+      }).join('');
+
+      tbody+=`<tr>
+        <td style="font-weight:700;">${p}</td>
+        <td>${starsEl(psc,'stars-sm')}</td>
+        <td>${lvlBadge(psc)}</td>
+        <td><button class="tbtn" onclick="togDet('${did}',this)">▼ Expand</button></td>
+      </tr>
+      <tr class="detail-row"><td colspan="4">
+        <div class="det" id="${did}">${detHtml}</div>
+      </td></tr>`;
+    });
+
+    html+=`
+<div class="card" data-client="${cl}" style="margin-bottom:16px;overflow:visible;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;padding-bottom:12px;border-bottom:1px solid var(--border);">
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:15px;font-weight:800;color:var(--accent);">${cl}</div>
+      <span class="badge b-blue">${projs.length} project${projs.length>1?'s':''}</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      ${starsEl(cavg,'stars-sm')}
+      ${lvlBadge(cavg)}
+    </div>
+  </div>
+  <table class="ptbl">
+    <colgroup>
+      <col style="width:35%;"><col style="width:25%;"><col style="width:28%;"><col style="width:12%;">
+    </colgroup>
+    <thead><tr>
+      <th>Project</th><th>Score</th><th>Level</th><th></th>
+    </tr></thead>
+    <tbody>${tbody}</tbody>
+  </table>
+</div>`;
+  });
+
+  document.getElementById('pr').innerHTML=html;
+}
+
+// ── MATURITY TOOLTIP (fixed position — escapes overflow:hidden) ──
+function showMatTip(e, id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.style.display='block';
+  moveMatTip(e, id);
+}
+function hideMatTip(id){
+  const el=document.getElementById(id);
+  if(el) el.style.display='none';
+}
+function moveMatTip(e, id){
+  const el=document.getElementById(id);
+  if(!el||el.style.display==='none') return;
+  const tw=el.offsetWidth||240;
+  const th=el.offsetHeight||120;
+  let left=e.clientX - tw/2;
+  let top =e.clientY + 20;  // below cursor instead of above
+  // Clamp horizontally to viewport
+  left=Math.max(8, Math.min(left, window.innerWidth-tw-8));
+  // If it would go off bottom, show above instead
+  if(top + th > window.innerHeight - 8) top = e.clientY - th - 14;
+  el.style.left=left+'px';
+  el.style.top =top+'px';
+}
+
+function togDet(id,btn){
+  const el=document.getElementById(id);
+  const open=el.classList.contains('open');
+  el.classList.toggle('open',!open);
+  btn.textContent=open?'▼ Expand':'▲ Collapse';
+}
+
+function goToClient(el){
+  const clientName=el.dataset.clientName;
+  showTab('pr');
+  setTimeout(()=>{
+    const card=document.querySelector(`[data-client="${clientName}"]`);
+    if(card){
+      card.scrollIntoView({behavior:'smooth',block:'start'});
+      card.style.boxShadow='0 0 0 2px var(--accent)';
+      setTimeout(()=>{card.style.boxShadow='';},1800);
+    }
+  },80);
+}
+</script>
+</body>
+</html>
